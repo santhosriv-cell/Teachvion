@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+{% block title %}{{ job.title }} — {{ job.company.name }} — Teachvion{% endblock %}
+
+{% block extra_style %}
+
+
+{% endblock %}
+
+{% block content %}
+<div class="jd-layout">
+  <div class="row g-4">
+
+    <!-- LEFT: Job details -->
+    <div class="col-lg-8">
+      <div class="jd-card">
+        <div class="d-flex gap-3 mb-4 align-items-start flex-wrap">
+          <div class="co-logo-lg">
+            {% if job.company.logo %}<img src="{{ job.company.logo.url }}" alt="">
+            {% else %}{{ job.company.name|first|upper }}{% endif %}
+          </div>
+          <div style="flex:1;">
+            <div class="job-title-lg">{{ job.title }}</div>
+            <div style="font-size:15px;color:#5a67d8;font-weight:600;">{{ job.company.name }}</div>
+            {% if job.location %}<div style="font-size:13px;color:#888;margin-top:3px;"><i class="fas fa-map-marker-alt me-1"></i>{{ job.location }}</div>{% endif %}
+            <div class="mt-2">
+              <span class="tag tag-type">{{ job.get_job_type_display }}</span>
+              <span class="tag tag-level">{{ job.get_level_display }}</span>
+              {% if not job.is_open %}<span class="tag" style="background:#fee2e2;color:#991b1b;">Closed</span>{% endif %}
+            </div>
+          </div>
+        </div>
+
+        <!-- Meta info -->
+        <div class="mb-4">
+          <div class="info-row"><span class="info-label">Salary</span><span class="info-val">{{ job.salary_display }}</span></div>
+          {% if job.deadline %}<div class="info-row"><span class="info-label">Deadline</span><span class="info-val">{{ job.deadline|date:"d M Y" }}</span></div>{% endif %}
+          <div class="info-row"><span class="info-label">Posted</span><span class="info-val">{{ job.posted_at|date:"d M Y" }}</span></div>
+          <div class="info-row"><span class="info-label">Applicants</span><span class="info-val">{{ job.applications.count }}</span></div>
+          {% if job.required_course %}<div class="info-row"><span class="info-label">Cert required</span><span class="info-val" style="color:#d97706;">{{ job.required_course.title }}</span></div>{% endif %}
+          <div class="info-row"><span class="info-label">Min score</span><span class="info-val">{{ job.min_exam_score }}%+</span></div>
+        </div>
+
+        <!-- Description -->
+        {% if job.description %}
+        <div class="section-title">📋 About This Role</div>
+        <div style="font-size:14px;color:#444;line-height:1.8;margin-bottom:20px;white-space:pre-wrap;">{{ job.description }}</div>
+        {% endif %}
+
+        <!-- Responsibilities -->
+        {% if job.responsibilities %}
+        <div class="section-title">✅ Responsibilities</div>
+        <div style="font-size:14px;color:#444;line-height:1.8;margin-bottom:20px;white-space:pre-wrap;">{{ job.responsibilities }}</div>
+        {% endif %}
+
+        <!-- Requirements -->
+        {% if job.requirements %}
+        <div class="section-title">🎯 Requirements</div>
+        <div style="font-size:14px;color:#444;line-height:1.8;margin-bottom:20px;white-space:pre-wrap;">{{ job.requirements }}</div>
+        {% endif %}
+
+        <!-- Skills -->
+        {% if job.skills_list %}
+        <div class="section-title">🛠️ Skills Required</div>
+        <div class="mb-4">
+          {% for skill in job.skills_list %}<span class="skill-pill">{{ skill }}</span>{% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Company info -->
+        {% if job.company.about %}
+        <div class="section-title">🏢 About {{ job.company.name }}</div>
+        <div style="font-size:14px;color:#444;line-height:1.8;white-space:pre-wrap;">{{ job.company.about }}</div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- RIGHT: Apply box + similar -->
+    <div class="col-lg-4">
+      <div class="jd-card" style="position:sticky;top:80px;">
+        {% if request.user.is_authenticated and request.user.role == 'student' %}
+          {% if already_applied %}
+            <div class="apply-box">
+              <div style="font-size:24px;text-align:center;margin-bottom:10px;">✅</div>
+              <h6 class="fw-bold text-center mb-2">Application Submitted</h6>
+              <p class="text-muted text-center mb-3" style="font-size:13px;">You have already applied for this position.</p>
+              <a href="{% url 'my_applications' %}" class="apply-btn applied">Track Application</a>
+            </div>
+          {% elif can_apply %}
+            <div class="apply-box">
+              <h6 class="fw-bold mb-1">You qualify! 🎉</h6>
+              <p style="font-size:13px;color:#555;margin-bottom:14px;">
+                Your <strong>{{ qualifying_cert.course.title }}</strong> certificate
+                ({{ qualifying_cert.exam_attempt.percentage|floatformat:0 }}%) meets the requirement.
+              </p>
+              <a href="{% url 'apply_job' job.id %}" class="apply-btn">Apply Now →</a>
+            </div>
+          {% else %}
+            <div class="locked-box">
+              <div style="font-size:32px;margin-bottom:8px;">🔒</div>
+              <h6 class="fw-bold mb-2">Certificate Required</h6>
+              <p style="font-size:13px;color:#92400e;margin-bottom:14px;">
+                You need a
+                {% if job.required_course %}<strong>{{ job.required_course.title }}</strong>{% else %}Teachvion{% endif %}
+                certificate with {{ job.min_exam_score }}%+ score to apply.
+              </p>
+              {% if job.required_course %}
+              <a href="{% url 'index' %}" class="btn btn-warning rounded-pill w-100 fw-bold" style="font-size:13px;">
+                Get Certified First →
+              </a>
+              {% endif %}
+            </div>
+          {% endif %}
+        {% elif not request.user.is_authenticated %}
+          <div class="apply-box">
+            <h6 class="fw-bold mb-2 text-center">Login to Apply</h6>
+            <p class="text-muted text-center mb-3" style="font-size:13px;">You need a Teachvion account to apply for this job.</p>
+            <a href="{% url 'login' %}?next={% url 'job_detail' job.id %}" class="apply-btn">Login / Register</a>
+          </div>
+        {% endif %}
+
+        <!-- Similar jobs -->
+        {% if similar_jobs %}
+        <div class="mt-4">
+          <div style="font-size:13px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">More from {{ job.company.name }}</div>
+          {% for j in similar_jobs %}
+          <a href="{% url 'job_detail' j.id %}" class="similar-card d-block text-decoration-none">
+            <div style="font-size:13px;font-weight:700;color:#1a2c3e;">{{ j.title }}</div>
+            <div style="font-size:12px;color:#888;margin-top:2px;">{{ j.get_job_type_display }} &nbsp;·&nbsp; {{ j.location|default:"Remote" }}</div>
+          </a>
+          {% endfor %}
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,501 @@
+{% extends 'base.html' %}
+{% block title %}{{ live_class.title }} — Live Class — Teachvion{% endblock %}
+
+{% block extra_style %}
+<style>
+body { background: #0f172a !important; color: white; margin: 0; overflow: hidden; }
+.room-layout { display: flex; height: calc(100vh - 60px); overflow: hidden; }
+.jitsi-panel { flex: 1; min-width: 0; display: flex; flex-direction: column; background: #000; }
+.jitsi-topbar { background: #1e293b; padding: 10px 18px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-shrink: 0; border-bottom: 1px solid #334155; flex-wrap: wrap; }
+.class-title { font-size: 15px; font-weight: 700; color: white; }
+.live-dot { display: inline-flex; align-items: center; gap: 6px; background: #dc2626; color: white; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; }
+.live-dot::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: white; animation: blink 1s ease-in-out infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+.countdown-pill { background: #1e40af; color: #bfdbfe; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; }
+.rec-badge { background: #dc2626; color: white; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; display: none; }
+.rec-badge.show { display: inline-flex; align-items: center; gap: 5px; }
+.rec-badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: white; animation: blink 1s infinite; }
+#jitsiContainer { flex: 1; width: 100%; }
+.waiting-screen { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 20px; text-align: center; background: #0f172a; }
+.big-timer { font-size: 52px; font-weight: 800; color: #5a67d8; margin: 24px 0 12px; font-variant-numeric: tabular-nums; }
+.join-btn { background: linear-gradient(135deg,#5a67d8,#7b4bb7); color: white; border: none; border-radius: 30px; padding: 14px 36px; font-size: 16px; font-weight: 700; cursor: pointer; transition: .2s; margin-top: 20px; display: none; align-items: center; gap: 8px; text-decoration: none; }
+.join-btn.visible { display: inline-flex; }
+.room-sidebar { width: 280px; min-width: 280px; background: #1e293b; display: flex; flex-direction: column; border-left: 1px solid #334155; overflow: hidden; }
+.sidebar-tabs { display: flex; border-bottom: 1px solid #334155; flex-shrink: 0; }
+.stab { flex: 1; padding: 11px 6px; font-size: 12px; font-weight: 600; color: #94a3b8; background: none; border: none; cursor: pointer; border-bottom: 2px solid transparent; transition: .15s; }
+.stab:hover { color: white; }
+.stab.active { color: #5a67d8; border-bottom-color: #5a67d8; }
+.stab-panel { display: none; flex: 1; overflow: hidden; flex-direction: column; }
+.stab-panel.active { display: flex; }
+.chat-messages { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+.chat-msg { display: flex; flex-direction: column; gap: 2px; }
+.chat-msg .sender { font-size: 11px; font-weight: 700; color: #5a67d8; }
+.chat-msg .text { background: #334155; border-radius: 0 10px 10px 10px; padding: 8px 12px; font-size: 13px; color: #e2e8f0; line-height: 1.5; max-width: 220px; word-break: break-word; }
+.chat-msg.own .text { background: #3730a3; border-radius: 10px 0 10px 10px; margin-left: auto; }
+.chat-msg.own .sender { text-align: right; color: #a5b4fc; }
+.chat-input-wrap { padding: 10px 12px; border-top: 1px solid #334155; display: flex; gap: 8px; flex-shrink: 0; }
+.chat-input { flex: 1; background: #334155; border: 1px solid #475569; border-radius: 20px; padding: 8px 14px; font-size: 13px; color: white; outline: none; }
+.chat-send { width: 34px; height: 34px; background: #5a67d8; border: none; border-radius: 50%; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+.info-panel { padding: 14px; overflow-y: auto; }
+.info-row { display: flex; gap: 10px; padding: 10px 0; border-bottom: 1px solid #334155; font-size: 13px; }
+.info-row:last-child { border: none; }
+.info-row .il { color: #64748b; min-width: 70px; flex-shrink: 0; font-size: 12px; }
+.info-row .iv { color: #e2e8f0; font-weight: 500; }
+.notes-ta { width: 100%; background: #334155; border: 1px solid #475569; border-radius: 10px; padding: 10px; font-size: 13px; color: #e2e8f0; outline: none; resize: none; font-family: inherit; flex: 1; }
+/* Recording section */
+.rec-section { padding: 14px; overflow-y: auto; }
+.rec-form-card { background: #0f172a; border-radius: 12px; padding: 16px; }
+.rec-status-box { border-radius: 10px; padding: 10px 14px; font-size: 12px; margin-bottom: 12px; }
+.rs-none       { background: #1e293b; color: #64748b; }
+.rs-recording  { background: #450a0a; color: #fca5a5; }
+.rs-ready      { background: #052e16; color: #86efac; }
+.rs-added      { background: #1e3a5f; color: #93c5fd; }
+.rec-input { width: 100%; background: #334155; border: 1px solid #475569; border-radius: 8px; padding: 9px 12px; font-size: 13px; color: white; outline: none; margin-bottom: 10px; font-family: inherit; }
+.rec-input::placeholder { color: #64748b; }
+.rec-btn { width: 100%; padding: 10px; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; transition: .2s; }
+.rec-btn-save   { background: linear-gradient(135deg,#2d6a4f,#1a5f7a); color: white; }
+.rec-btn-delete { background: #7f1d1d; color: white; margin-top: 8px; }
+.rec-btn:hover  { opacity: .9; }
+.ended-screen { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; text-align: center; background: #0f172a; }
+.ended-screen h3 { color: #4ade80; font-size: 22px; font-weight: 700; margin: 16px 0 8px; }
+@media(max-width:768px) { .room-sidebar { display: none; } .room-layout { height: auto; flex-direction: column; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="roomConfig"
+     data-room="{{ live_class.room_name }}"
+     data-title="{{ live_class.title|escapejs }}"
+     data-display-name="{{ user.get_full_name|escapejs }}"
+     data-email="{{ user.email|escapejs }}"
+     data-is-moderator="{{ is_moderator|yesno:'true,false' }}"
+     data-scheduled="{{ live_class.scheduled_at.isoformat }}"
+     data-duration="{{ live_class.duration_mins }}"
+     data-csrf="{{ csrf_token }}"
+     data-class-id="{{ live_class.id }}"
+     data-attend-url="{% url 'mark_attendance' live_class.id %}"
+     data-leave-url="{% url 'mark_leave' live_class.id %}"
+     data-save-rec-url="{% url 'save_recording' live_class.id %}"
+     data-rec-status="{{ live_class.recording_status }}"
+     style="display:none;">
+</div>
+
+<div class="room-layout">
+
+  <!-- LEFT: Jitsi -->
+  <div class="jitsi-panel">
+    <div class="jitsi-topbar">
+      <div>
+        <div class="class-title">{{ live_class.title }}</div>
+        <div style="font-size:12px;color:#64748b;margin-top:2px;">{{ live_class.course.title }}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+        <span id="liveIndicator" class="countdown-pill" style="display:none;">Loading...</span>
+        <span id="recBadge" class="rec-badge">REC</span>
+        <span id="participantCount" style="font-size:12px;color:#94a3b8;display:none;">
+          <i class="fas fa-users me-1"></i><span id="pCount">0</span>
+        </span>
+        <a href="{% url 'my_live_classes' %}" style="background:#334155;color:#94a3b8;border-radius:8px;padding:7px 14px;font-size:12px;text-decoration:none;">← Back</a>
+      </div>
+    </div>
+
+    <!-- Waiting -->
+    <div class="waiting-screen" id="waitingScreen">
+      <div style="font-size:48px;margin-bottom:12px;">📺</div>
+      <h3>{{ live_class.title }}</h3>
+      <p style="color:#94a3b8;font-size:14px;">
+        {{ live_class.scheduled_at|date:"l, d F Y" }} at {{ live_class.scheduled_at|time:"H:i" }}
+      </p>
+      <div class="big-timer" id="bigTimer">--:--:--</div>
+      <p id="waitingText" style="color:#94a3b8;">Class starts in</p>
+      <button class="join-btn" id="joinBtn" onclick="startMeeting()">🎥 Join Live Class</button>
+    </div>
+
+    <div id="jitsiContainer" style="display:none;width:100%;height:100%;"></div>
+
+    <!-- Ended -->
+    <div class="ended-screen" id="endedScreen" style="display:none;">
+      <div style="font-size:48px;">✅</div>
+      <h3>Class has ended</h3>
+      <p style="color:#94a3b8;font-size:14px;max-width:340px;">
+        Attendance recorded.
+        {% if is_moderator %}Use the <strong>Recording</strong> tab to save the recording to the course.{% endif %}
+      </p>
+      <a href="{% url 'my_live_classes' %}" style="margin-top:20px;background:linear-gradient(135deg,#5a67d8,#7b4bb7);color:white;border-radius:25px;padding:12px 28px;text-decoration:none;font-weight:700;font-size:14px;">← Back to Classes</a>
+    </div>
+  </div>
+
+  <!-- RIGHT: Sidebar -->
+  <div class="room-sidebar">
+    <div class="sidebar-tabs">
+      <button class="stab active" onclick="switchSTab('chat',this)">💬 Chat</button>
+      <button class="stab" onclick="switchSTab('info',this)">ℹ️ Info</button>
+      <button class="stab" onclick="switchSTab('notes',this)">📝 Notes</button>
+      {% if is_moderator %}
+      <button class="stab" onclick="switchSTab('rec',this)" id="recTab">🎬 Rec</button>
+      {% endif %}
+    </div>
+
+    <!-- Chat -->
+    <div class="stab-panel active" id="stab-chat">
+      <div class="chat-messages" id="chatMessages">
+        <div class="chat-msg">
+          <span class="sender" style="color:#4ade80;">Teachvion</span>
+          <div class="text">Welcome! 🎓 Class chat is active.</div>
+        </div>
+      </div>
+      <div class="chat-input-wrap">
+        <input class="chat-input" id="chatInput" type="text" placeholder="Type a message..." onkeypress="if(event.key==='Enter') sendChat()">
+        <button class="chat-send" onclick="sendChat()"><i class="fas fa-paper-plane"></i></button>
+      </div>
+    </div>
+
+    <!-- Info -->
+    <div class="stab-panel" id="stab-info">
+      <div class="info-panel">
+        <div class="info-row"><span class="il">Course</span><span class="iv">{{ live_class.course.title }}</span></div>
+        <div class="info-row"><span class="il">Trainer</span><span class="iv">{{ live_class.trainer.get_full_name }}</span></div>
+        <div class="info-row"><span class="il">Date</span><span class="iv">{{ live_class.scheduled_at|date:"d M Y H:i" }}</span></div>
+        <div class="info-row"><span class="il">Duration</span><span class="iv">{{ live_class.duration_mins }} minutes</span></div>
+        {% if live_class.description %}
+        <div class="info-row" style="flex-direction:column;">
+          <span class="il" style="margin-bottom:6px;">About</span>
+          <span class="iv" style="font-size:13px;color:#94a3b8;line-height:1.6;">{{ live_class.description }}</span>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Notes -->
+    <div class="stab-panel" id="stab-notes">
+      <div class="info-panel" style="flex:1;display:flex;flex-direction:column;height:100%;">
+        <div style="font-size:12px;color:#64748b;margin-bottom:6px;">Personal notes (saved in browser)</div>
+        <textarea class="notes-ta" id="classNotes" placeholder="Write your notes here..." oninput="saveNotes()" style="height:calc(100% - 30px);"></textarea>
+        <div style="font-size:11px;color:#475569;text-align:right;margin-top:4px;" id="notesSaved"></div>
+      </div>
+    </div>
+
+    <!-- Recording (trainer/admin only) -->
+    {% if is_moderator %}
+    <div class="stab-panel" id="stab-rec">
+      <div class="rec-section">
+
+        <!-- Current status -->
+        <div class="rec-status-box
+          {% if live_class.recording_status == 'none' %}rs-none
+          {% elif live_class.recording_status == 'recording' %}rs-recording
+          {% elif live_class.recording_status in 'ready added' %}rs-ready
+          {% endif %}" id="recStatusBox">
+          {% if live_class.recording_status == 'none' %}
+            📹 No recording saved yet
+          {% elif live_class.recording_status == 'recording' %}
+            🔴 Recording in progress...
+          {% elif live_class.recording_status == 'ready' %}
+            ✅ Recording saved
+          {% elif live_class.recording_status == 'added' %}
+            ✅ Added to course player
+            {% if live_class.lesson_created %}
+            <div style="font-size:11px;margin-top:4px;opacity:.8;">
+              Lesson: "{{ live_class.lesson_created.title }}"
+            </div>
+            {% endif %}
+          {% endif %}
+        </div>
+
+        <div class="rec-form-card">
+          <div style="font-size:12px;font-weight:700;color:#94a3b8;margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px;">
+            Save Recording to Course
+          </div>
+
+          <form method="post" action="{% url 'save_recording' live_class.id %}" enctype="multipart/form-data" id="recForm">
+            {% csrf_token %}
+
+            <div style="font-size:12px;color:#64748b;margin-bottom:6px;">Lesson Title (optional)</div>
+            <input class="rec-input" type="text" name="title"
+                   placeholder="e.g. Live Class — {{ live_class.title }}"
+                   value="[Live Recording] {{ live_class.title }}">
+
+            <div style="font-size:12px;color:#64748b;margin-bottom:6px;margin-top:4px;">
+              Option 1 — Paste Recording URL
+            </div>
+            <input class="rec-input" type="url" name="recording_url" id="recUrlInput"
+                   placeholder="https://drive.google.com/... or Dropbox link..."
+                   value="{{ live_class.recording_url }}">
+            <div style="font-size:11px;color:#475569;margin-top:-6px;margin-bottom:10px;line-height:1.5;">
+              Paste Google Drive, Dropbox, or any public video link.<br>
+              For Jitsi recordings: check your email after the class.
+            </div>
+
+            <div style="font-size:12px;color:#64748b;margin-bottom:6px;">Option 2 — Upload Video File</div>
+            <input class="rec-input" type="file" name="recording_file" accept="video/*" style="padding:6px;">
+            <div style="font-size:11px;color:#475569;margin-top:-6px;margin-bottom:12px;">
+              MP4, WebM — max 500MB
+            </div>
+
+            <button type="submit" class="rec-btn rec-btn-save">
+              💾 Save Recording to Course Player
+            </button>
+          </form>
+
+          {% if live_class.recording_status in 'ready,added' %}
+          <form method="post" action="{% url 'delete_recording' live_class.id %}">
+            {% csrf_token %}
+            <button type="submit" class="rec-btn rec-btn-delete"
+                    onclick="return confirm('Delete this recording and its course lesson?')">
+              🗑️ Delete Recording
+            </button>
+          </form>
+          {% endif %}
+
+          <!-- How Jitsi recording works -->
+          <div style="background:#0f172a;border-radius:10px;padding:12px;margin-top:14px;font-size:11px;color:#64748b;line-height:1.7;">
+            <strong style="color:#94a3b8;">📌 How to get the Jitsi recording:</strong><br>
+            1. During the class, click the <strong>Record</strong> button in Jitsi toolbar<br>
+            2. After class ends, Jitsi emails the recording link to the trainer<br>
+            3. Copy that link and paste it above → students see it in course player<br><br>
+            <strong style="color:#94a3b8;">💡 Or use screen recording:</strong><br>
+            Record your screen with OBS/Loom → upload the file above
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://meet.jit.si/external_api.js"></script>
+<script>
+(function () {
+  var cfg         = document.getElementById('roomConfig').dataset;
+  var ROOM        = cfg.room;
+  var TITLE       = cfg.title;
+  var NAME        = cfg.displayName;
+  var EMAIL       = cfg.email;
+  var MOD         = cfg.isModerator === 'true';
+  var SCHEDULED   = new Date(cfg.scheduled);
+  var DURATION    = parseInt(cfg.duration, 10);
+  var NOTES_KEY   = 'teachvion_notes_' + ROOM;
+  var ATTEND_URL  = cfg.attendUrl;
+  var LEAVE_URL   = cfg.leaveUrl;
+  var CSRF        = cfg.csrf;
+
+  var api          = null;
+  var classStarted = false;
+  var leftMarked   = false;
+  var timerIv      = null;
+
+  window.switchSTab = function (id, btn) {
+    document.querySelectorAll('.stab').forEach(function (b) { b.classList.remove('active'); });
+    document.querySelectorAll('.stab-panel').forEach(function (p) { p.classList.remove('active'); });
+    btn.classList.add('active');
+    document.getElementById('stab-' + id).classList.add('active');
+  };
+
+  /* Countdown */
+  function updateCountdown() {
+    var now  = new Date();
+    var diff = SCHEDULED - now;
+    var end  = new Date(SCHEDULED.getTime() + DURATION * 60000);
+    var ind  = document.getElementById('liveIndicator');
+    ind.style.display = 'inline-flex';
+
+    if (now > end) {
+      clearInterval(timerIv);
+      ind.textContent = 'Ended';
+      ind.className   = 'countdown-pill';
+      document.getElementById('bigTimer').textContent = 'Ended';
+      if (!classStarted) {
+        document.getElementById('waitingScreen').style.display = 'none';
+        document.getElementById('endedScreen').style.display   = 'flex';
+      }
+      /* Auto-open recording tab for trainer when class ends */
+      if (MOD) {
+        var recTabBtn = document.getElementById('recTab');
+        if (recTabBtn) recTabBtn.click();
+      }
+      return;
+    }
+
+    if (diff <= 0) {
+      ind.textContent = '🔴 LIVE';
+      ind.className   = 'live-dot';
+      document.getElementById('bigTimer').textContent = 'LIVE NOW';
+      document.getElementById('waitingText').textContent = 'Class is live — click Join!';
+      document.getElementById('joinBtn').classList.add('visible');
+      return;
+    }
+
+    var h = Math.floor(diff / 3600000);
+    var m = Math.floor((diff % 3600000) / 60000);
+    var s = Math.floor((diff % 60000) / 1000);
+    function pad(n) { return n < 10 ? '0' + n : '' + n; }
+    document.getElementById('bigTimer').textContent = pad(h) + ':' + pad(m) + ':' + pad(s);
+    ind.textContent = (h > 0 ? h + 'h ' : '') + pad(m) + ':' + pad(s);
+    ind.className   = 'countdown-pill';
+    if (diff < 5 * 60000) {
+      document.getElementById('joinBtn').classList.add('visible');
+      document.getElementById('waitingText').textContent = 'Starting soon — you can join now!';
+    }
+  }
+
+  timerIv = setInterval(updateCountdown, 1000);
+  updateCountdown();
+
+  /* Start Jitsi */
+  window.startMeeting = function () {
+    if (classStarted) return;
+    classStarted = true;
+    document.getElementById('waitingScreen').style.display  = 'none';
+    document.getElementById('jitsiContainer').style.display = 'block';
+
+    var options = {
+      roomName:   ROOM,
+      width:      '100%',
+      height:     '100%',
+      parentNode: document.getElementById('jitsiContainer'),
+      userInfo:   { displayName: NAME, email: EMAIL },
+      configOverwrite: {
+        startWithAudioMuted: !MOD,
+        startWithVideoMuted: !MOD,
+        enableWelcomePage:   false,
+        prejoinPageEnabled:  false,
+        subject:             TITLE,
+        /* Enable recording for moderators */
+        recordingService:    { enabled: true },
+        localRecording:      { enabled: MOD, notifyAllParticipants: true },
+        p2p:                 { enabled: true },
+      },
+      interfaceConfigOverwrite: {
+        TOOLBAR_BUTTONS: MOD
+          ? ['microphone','camera','desktop','fullscreen','chat',
+             'raisehand','tileview','participants-pane',
+             'recording',          /* ← recording button for trainer */
+             'local-recording',    /* ← local recording */
+             'mute-everyone','security','settings','hangup']
+          : ['microphone','camera','fullscreen','chat',
+             'raisehand','tileview','participants-pane','hangup'],
+        SHOW_JITSI_WATERMARK:           false,
+        APP_NAME:                       'Teachvion Live',
+        PROVIDER_NAME:                  'Teachvion',
+        HIDE_INVITE_MORE_HEADER:        true,
+        SHOW_PROMOTIONAL_CLOSE_PAGE:    false,
+      },
+    };
+
+    api = new JitsiMeetExternalAPI('meet.jit.si', options);
+    document.getElementById('participantCount').style.display = 'inline';
+
+    /* Track recording state */
+    api.on('recordingStatusChanged', function (e) {
+      var badge = document.getElementById('recBadge');
+      if (e.on) {
+        badge.classList.add('show');
+        /* Notify everyone recording started */
+        addSystemMsg('🔴 Recording started');
+      } else {
+        badge.classList.remove('show');
+        addSystemMsg('⏹️ Recording stopped — check your email for the recording link');
+        /* Auto-switch trainer to Recording tab */
+        if (MOD) {
+          var recTabBtn = document.getElementById('recTab');
+          if (recTabBtn) setTimeout(function () { recTabBtn.click(); }, 500);
+        }
+      }
+    });
+
+    api.on('participantJoined',  function (e) { updatePCount(); addSystemMsg('📌 ' + e.displayName + ' joined.'); });
+    api.on('participantLeft',    function (e) { updatePCount(); addSystemMsg(e.displayName + ' left.'); });
+
+    function updatePCount() {
+      if (api) api.getNumberOfParticipants().then(function (n) {
+        var el = document.getElementById('pCount');
+        if (el) el.textContent = n;
+      }).catch(function () {});
+    }
+
+    /* Mark attendance */
+    if (!MOD) {
+      fetch(ATTEND_URL, { method: 'POST', headers: { 'X-CSRFToken': CSRF } }).catch(function () {});
+    }
+
+    api.on('readyToClose', function () {
+      api.dispose(); api = null;
+      markLeft();
+      document.getElementById('jitsiContainer').style.display = 'none';
+      document.getElementById('endedScreen').style.display    = 'flex';
+      if (MOD) {
+        var recTabBtn = document.getElementById('recTab');
+        if (recTabBtn) recTabBtn.click();
+      }
+    });
+
+    api.on('videoConferenceLeft', function () { markLeft(); });
+  };
+
+  function markLeft() {
+    if (leftMarked || MOD) return;
+    leftMarked = true;
+    fetch(LEAVE_URL, { method: 'POST', headers: { 'X-CSRFToken': CSRF } }).catch(function () {});
+  }
+
+  window.addEventListener('beforeunload', function () {
+    if (!MOD) navigator.sendBeacon(LEAVE_URL, new URLSearchParams({ csrfmiddlewaretoken: CSRF }));
+  });
+
+  /* Chat */
+  window.sendChat = function () {
+    var input = document.getElementById('chatInput');
+    var text  = input.value.trim();
+    if (!text) return;
+    addChatMsg(NAME, text, true);
+    input.value = '';
+    if (api) { try { api.executeCommand('sendEndpointTextMessage', '', text); } catch (e) {} }
+  };
+
+  function addChatMsg(sender, text, own) {
+    var msgs = document.getElementById('chatMessages');
+    var div  = document.createElement('div');
+    div.className = 'chat-msg' + (own ? ' own' : '');
+    div.innerHTML = '<span class="sender">' + escH(sender) + '</span><div class="text">' + escH(text) + '</div>';
+    msgs.appendChild(div);
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+
+  function addSystemMsg(text) {
+    var msgs = document.getElementById('chatMessages');
+    var d    = document.createElement('div');
+    d.style.cssText = 'text-align:center;font-size:11px;color:#475569;padding:4px 0;';
+    d.textContent   = text;
+    msgs.appendChild(d);
+    msgs.scrollTop  = msgs.scrollHeight;
+  }
+
+  function escH(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  /* Notes */
+  var notesEl = document.getElementById('classNotes');
+  if (notesEl) {
+    var saved = localStorage.getItem(NOTES_KEY);
+    if (saved) notesEl.value = saved;
+    window.saveNotes = function () {
+      localStorage.setItem(NOTES_KEY, notesEl.value);
+      document.getElementById('notesSaved').textContent = 'Saved ✓';
+      setTimeout(function () { document.getElementById('notesSaved').textContent = ''; }, 1500);
+    };
+  }
+
+  /* Auto-join if already live */
+  var now = new Date();
+  var end = new Date(SCHEDULED.getTime() + DURATION * 60000);
+  if (SCHEDULED <= now && now <= end) {
+    document.getElementById('joinBtn').classList.add('visible');
+    document.getElementById('waitingText').textContent = 'Joining in 2 seconds...';
+    setTimeout(function () { if (!classStarted) startMeeting(); }, 2000);
+  }
+
+})();
+</script>
+{% endblock %}

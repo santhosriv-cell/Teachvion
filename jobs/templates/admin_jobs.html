@@ -1,0 +1,200 @@
+{% extends 'base.html' %}
+{% block title %}Job Board Admin — Teachvion{% endblock %}
+
+{% block extra_style %}
+
+{% endblock %}
+
+{% block content %}
+<div class="page-hero">
+  <div class="container d-flex justify-content-between align-items-center flex-wrap gap-3">
+    <div>
+      <h3 class="fw-bold mb-1">🏢 Job Board Admin</h3>
+      <p class="mb-0 opacity-75" style="font-size:14px;">Approve companies and job listings</p>
+    </div>
+    <a href="{% url 'admin_dashboard' %}" class="btn btn-light rounded-pill px-4" style="font-size:13px;">
+      ← Admin Dashboard
+    </a>
+  </div>
+</div>
+<a href="{% url 'admin_post_job' %}" class="btn btn-success rounded-pill px-4 fw-bold">
+  <i class="fas fa-plus me-1"></i>Post New Job (Live Immediately)
+</a>
+
+<div class="container pb-5">
+
+  <!-- Stats -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="stat-card" style="border-left:4px solid #f59e0b;">
+        <div class="sv" style="color:#f59e0b;">{{ pending_jobs|length }}</div>
+        <div style="font-size:12px;color:#888;">Pending Jobs</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-card" style="border-left:4px solid #dc2626;">
+        <div class="sv" style="color:#dc2626;">{{ pending_companies|length }}</div>
+        <div style="font-size:12px;color:#888;">Pending Companies</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-card" style="border-left:4px solid #2d6a4f;">
+        <div class="sv" style="color:#2d6a4f;">{{ all_jobs|length }}</div>
+        <div style="font-size:12px;color:#888;">Live Jobs</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-card" style="border-left:4px solid #5a67d8;">
+        <div class="sv" style="color:#5a67d8;">
+          {% for j in all_jobs %}{{ j.applications.count }}{% if not forloop.last %}+{% endif %}{% endfor %}
+        </div>
+        <div style="font-size:12px;color:#888;">Total Applications</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="nav-tabs-c">
+    <button class="n-tab active" onclick="switchP('pending',this)">
+      ⏳ Pending Jobs
+      {% if pending_jobs %}
+      <span style="background:#f59e0b;color:white;border-radius:20px;padding:1px 7px;font-size:10px;margin-left:4px;">{{ pending_jobs|length }}</span>
+      {% endif %}
+    </button>
+    <button class="n-tab" onclick="switchP('companies',this)">
+      🏢 Companies
+      {% if pending_companies %}
+      <span style="background:#dc2626;color:white;border-radius:20px;padding:1px 7px;font-size:10px;margin-left:4px;">{{ pending_companies|length }}</span>
+      {% endif %}
+    </button>
+    <button class="n-tab" onclick="switchP('live',this)">✅ Live Jobs</button>
+  </div>
+
+  <!-- Pending Jobs -->
+  <div class="panel active" id="p-pending">
+    {% for job in pending_jobs %}
+    <div class="row-card pending">
+      <div style="flex:1;">
+        <div style="font-weight:700;font-size:15px;color:#1a2c3e;">{{ job.title }}</div>
+        <div style="font-size:13px;color:#888;margin-top:2px;">
+          {{ job.company.name }} &nbsp;·&nbsp;
+          {{ job.get_job_type_display }} &nbsp;·&nbsp;
+          {{ job.location|default:"Remote" }}
+        </div>
+        <div style="font-size:12px;color:#aaa;margin-top:3px;">
+          Posted {{ job.posted_at|date:"d M Y" }} &nbsp;·&nbsp;
+          Min score: {{ job.min_exam_score }}%
+          {% if job.required_course %}&nbsp;·&nbsp; Requires: {{ job.required_course.title }}{% endif %}
+        </div>
+        <div style="font-size:13px;color:#555;margin-top:6px;line-height:1.5;">
+          {{ job.description|truncatechars:150 }}
+        </div>
+      </div>
+      <div class="d-flex gap-2 flex-wrap">
+        <a href="{% url 'job_detail' job.id %}" class="btn btn-sm btn-outline-secondary rounded-pill" style="font-size:11px;">View</a>
+        <form method="post" style="display:inline;">
+          {% csrf_token %}
+          <input type="hidden" name="type" value="job">
+          <input type="hidden" name="id" value="{{ job.id }}">
+          <button type="submit" name="action" value="approve" class="approve-btn">✓ Approve</button>
+        </form>
+        <form method="post" style="display:inline;">
+          {% csrf_token %}
+          <input type="hidden" name="type" value="job">
+          <input type="hidden" name="id" value="{{ job.id }}">
+          <button type="submit" name="action" value="reject" class="reject-btn">✗ Reject</button>
+        </form>
+      </div>
+    </div>
+    {% empty %}
+    <div class="text-center py-5 bg-white rounded-4 shadow-sm">
+      <div style="font-size:48px;margin-bottom:12px;">✅</div>
+      <h5>No pending jobs</h5>
+      <p class="text-muted">All job listings have been reviewed.</p>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Pending Companies -->
+  <div class="panel" id="p-companies">
+    {% for company in pending_companies %}
+    <div class="row-card pending">
+      <div style="flex:1;">
+        <div style="font-weight:700;font-size:15px;color:#1a2c3e;">{{ company.name }}</div>
+        <div style="font-size:13px;color:#888;margin-top:2px;">
+          {% if company.industry %}{{ company.industry }} &nbsp;·&nbsp;{% endif %}
+          {% if company.location %}{{ company.location }} &nbsp;·&nbsp;{% endif %}
+          Registered {{ company.created_at|date:"d M Y" }}
+        </div>
+        {% if company.website %}
+        <a href="{{ company.website }}" target="_blank" style="font-size:12px;color:#5a67d8;">{{ company.website }}</a>
+        {% endif %}
+        {% if company.about %}
+        <div style="font-size:13px;color:#555;margin-top:6px;line-height:1.5;">{{ company.about|truncatechars:150 }}</div>
+        {% endif %}
+      </div>
+      <div class="d-flex gap-2 flex-wrap">
+        <form method="post" style="display:inline;">
+          {% csrf_token %}
+          <input type="hidden" name="type" value="company">
+          <input type="hidden" name="id" value="{{ company.id }}">
+          <button type="submit" name="action" value="approve" class="approve-btn">✓ Approve</button>
+        </form>
+        <form method="post" style="display:inline;">
+          {% csrf_token %}
+          <input type="hidden" name="type" value="company">
+          <input type="hidden" name="id" value="{{ company.id }}">
+          <button type="submit" name="action" value="reject" class="reject-btn">✗ Reject</button>
+        </form>
+      </div>
+    </div>
+    {% empty %}
+    <div class="text-center py-5 bg-white rounded-4 shadow-sm">
+      <div style="font-size:48px;margin-bottom:12px;">✅</div>
+      <h5>No pending companies</h5>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Live Jobs -->
+  <div class="panel" id="p-live">
+    {% for job in all_jobs %}
+    <div class="row-card approved">
+      <div style="flex:1;">
+        <div style="font-weight:700;font-size:15px;color:#1a2c3e;">{{ job.title }}</div>
+        <div style="font-size:13px;color:#888;margin-top:2px;">
+          {{ job.company.name }} &nbsp;·&nbsp; {{ job.get_job_type_display }}
+          &nbsp;·&nbsp; <strong style="color:#2d6a4f;">{{ job.applications.count }} applications</strong>
+        </div>
+      </div>
+      <div class="d-flex gap-2 align-items-center">
+        <span class="tag tag-approved">✓ Live</span>
+        <a href="{% url 'job_detail' job.id %}" class="btn btn-sm btn-outline-secondary rounded-pill" style="font-size:11px;">View</a>
+        <form method="post" style="display:inline;">
+          {% csrf_token %}
+          <input type="hidden" name="type" value="job">
+          <input type="hidden" name="id" value="{{ job.id }}">
+          <button type="submit" name="action" value="reject" class="reject-btn" style="font-size:11px;padding:5px 12px;">Remove</button>
+        </form>
+      </div>
+    </div>
+    {% empty %}
+    <div class="text-center py-5 bg-white rounded-4 shadow-sm">
+      <p class="text-muted">No live jobs yet.</p>
+    </div>
+    {% endfor %}
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function switchP(id, btn) {
+  document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active');});
+  document.querySelectorAll('.n-tab').forEach(function(b){b.classList.remove('active');});
+  document.getElementById('p-'+id).classList.add('active');
+  btn.classList.add('active');
+}
+</script>
+{% endblock %}

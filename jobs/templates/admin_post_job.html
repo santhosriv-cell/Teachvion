@@ -1,0 +1,163 @@
+{% extends 'base.html' %}
+{% block title %}Post Job — Admin — Teachvion{% endblock %}
+
+{% block extra_style %}
+<style>
+body { background: #f4f7fc; }
+.page-hero { background: linear-gradient(135deg,#0f172a,#1e3c72); color:white; padding:28px 0; margin-bottom:28px; }
+.form-card  { background:white; border-radius:20px; padding:32px; box-shadow:0 4px 20px rgba(0,0,0,.07); max-width:700px; margin:0 auto; }
+.sec-label  { font-size:12px; font-weight:700; color:#5a67d8; text-transform:uppercase; letter-spacing:.5px; border-bottom:2px solid #eef2ff; padding-bottom:8px; margin:22px 0 14px; }
+.fl         { font-size:12px; font-weight:700; color:#374151; margin-bottom:5px; display:block; }
+.fi         { width:100%; padding:11px 14px; border:1.5px solid #e0e0e0; border-radius:10px; font-size:14px; outline:none; transition:.2s; margin-bottom:14px; font-family:inherit; background:white; }
+.fi:focus   { border-color:#5a67d8; box-shadow:0 0 0 3px rgba(90,103,216,.1); }
+textarea.fi { resize:vertical; min-height:100px; }
+.submit-btn { width:100%; padding:14px; background:linear-gradient(135deg,#5a67d8,#7b4bb7); color:white; border:none; border-radius:12px; font-size:15px; font-weight:700; cursor:pointer; transition:.2s; }
+.submit-btn:hover { opacity:.9; transform:translateY(-2px); box-shadow:0 8px 24px rgba(90,103,216,.35); }
+.live-badge { display:inline-flex; align-items:center; gap:8px; background:#dcfce7; color:#166534; border-radius:20px; padding:8px 18px; font-size:13px; font-weight:700; margin-bottom:20px; border:1px solid #bbf7d0; }
+.live-dot   { width:8px; height:8px; border-radius:50%; background:#166534; animation:blink 1s infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+.hint       { font-size:11px; color:#94a3b8; margin-top:-10px; margin-bottom:14px; display:block; }
+</style>
+{% endblock %}
+
+
+{% block content %}
+<div class="page-hero">
+  <div class="container">
+    <a href="{% url 'admin_jobs' %}" style="color:rgba(255,255,255,.7); font-size:13px; text-decoration:none;">
+      ← Job Board Admin
+    </a>
+    <h3 class="fw-bold mt-2 mb-1">📋 Post a Job</h3>
+    <p class="mb-0 opacity-75" style="font-size:14px;">
+      Jobs posted from here go <strong>live immediately</strong> on the homepage and job board.
+    </p>
+  </div>
+</div>
+
+<div class="container pb-5">
+  <div class="form-card">
+
+    <div class="live-badge">
+      <span class="live-dot"></span>
+      Auto-approved — Visible on homepage immediately after submit
+    </div>
+
+    {% if messages %}
+      {% for m in messages %}
+      <div class="alert alert-danger rounded-3 mb-3" style="font-size:13px;">{{ m }}</div>
+      {% endfor %}
+    {% endif %}
+
+    <form method="post">
+      {% csrf_token %}
+
+      {# ── COMPANY INFO ── #}
+      <div class="sec-label">🏢 Company Information</div>
+
+      <label class="fl">Company Name *</label>
+      <input class="fi" type="text" name="company_name" required
+             placeholder="e.g. TechCorp India, Infosys, Google, Startup XYZ">
+      <span class="hint">This name appears on the job listing and homepage card.</span>
+
+      {# ── JOB INFO ── #}
+      <div class="sec-label">📌 Job Details</div>
+
+      <label class="fl">Job Title *</label>
+      <input class="fi" type="text" name="title" required
+             placeholder="e.g. Python Developer, Data Analyst, Java Full Stack Engineer">
+
+      <div class="row g-2">
+        <div class="col-md-6">
+          <label class="fl">Job Type *</label>
+          <select class="fi" name="job_type">
+            <option value="full_time">Full Time</option>
+            <option value="internship">Internship</option>
+            <option value="part_time">Part Time</option>
+            <option value="contract">Contract</option>
+            <option value="remote">Remote</option>
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="fl">Experience Level *</label>
+          <select class="fi" name="level">
+            <option value="fresher">Fresher / Entry Level</option>
+            <option value="junior">Junior (1-2 years)</option>
+            <option value="mid">Mid Level (2-5 years)</option>
+            <option value="senior">Senior (5+ years)</option>
+          </select>
+        </div>
+      </div>
+
+      <label class="fl">Location</label>
+      <input class="fi" type="text" name="location"
+             placeholder="e.g. Hyderabad, Telangana / Remote / Pan India">
+
+      <div class="row g-2">
+        <div class="col-6">
+          <label class="fl">Salary Min (₹ / year)</label>
+          <input class="fi" type="number" name="salary_min" min="0"
+                 placeholder="e.g. 300000">
+        </div>
+        <div class="col-6">
+          <label class="fl">Salary Max (₹ / year)</label>
+          <input class="fi" type="number" name="salary_max" min="0"
+                 placeholder="e.g. 600000">
+        </div>
+      </div>
+
+      <label class="fl">Application Deadline (optional)</label>
+      <input class="fi" type="date" name="deadline">
+
+      {# ── DESCRIPTION ── #}
+      <div class="sec-label">📝 Job Content</div>
+
+      <label class="fl">Job Description *</label>
+      <textarea class="fi" name="description" required
+                placeholder="Describe the role, company culture, benefits, team size..."></textarea>
+
+      <label class="fl">Responsibilities (optional)</label>
+      <textarea class="fi" name="responsibilities"
+                placeholder="• Build and maintain APIs&#10;• Write unit tests&#10;• Collaborate with design team..."></textarea>
+
+      <label class="fl">Requirements (optional)</label>
+      <textarea class="fi" name="requirements"
+                placeholder="• B.Tech / BCA degree&#10;• Knowledge of Python&#10;• Good communication skills..."></textarea>
+
+      <label class="fl">Required Skills (comma-separated)</label>
+      <input class="fi" type="text" name="skills"
+             placeholder="Python, Django, SQL, REST APIs, Git">
+
+      {# ── CERTIFICATE GATE ── #}
+      <div class="sec-label">🎓 Certificate Requirement</div>
+
+      <label class="fl">Required Teachvion Course (optional)</label>
+      <select class="fi" name="required_course">
+        <option value="">Any Teachvion Certificate (all certified students can apply)</option>
+        {% for c in courses %}
+        <option value="{{ c.id }}">{{ c.title }}</option>
+        {% endfor %}
+      </select>
+      <span class="hint">
+        Selecting a course means only students who completed that course can apply.
+        Leave blank to allow any certified Teachvion student.
+      </span>
+
+      <label class="fl">Minimum Exam Score Required (%)</label>
+      <input class="fi" type="number" name="min_exam_score"
+             value="50" min="1" max="100">
+      <span class="hint">Default is 50%. Raise this for more competitive roles.</span>
+
+      {# ── SUBMIT ── #}
+      <button type="submit" class="submit-btn">
+        🚀 Post Job — Go Live on Homepage Now
+      </button>
+
+      <p style="font-size:12px; color:#aaa; text-align:center; margin-top:12px;">
+        This job will appear on the homepage job section and at
+        <a href="{% url 'job_board' %}" style="color:#5a67d8;">teachvion/jobs/</a>
+        immediately.
+      </p>
+    </form>
+  </div>
+</div>
+{% endblock %}

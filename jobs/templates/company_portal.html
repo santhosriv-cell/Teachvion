@@ -1,0 +1,165 @@
+{% extends 'base.html' %}
+{% block title %}Company Portal — {{ company.name }} — Teachvion{% endblock %}
+
+{% block extra_style %}
+
+{% endblock %}
+
+{% block content %}
+<div class="portal-hero">
+  <div class="container d-flex justify-content-between align-items-center flex-wrap gap-3">
+    <div>
+      <h3 class="fw-bold mb-1">🏢 {{ company.name }}</h3>
+      <p class="mb-0 opacity-75" style="font-size:14px;">Company Portal</p>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{% url 'post_job' %}" class="btn btn-light rounded-pill px-4 fw-bold">
+        <i class="fas fa-plus me-1"></i>Post New Job
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="container pb-5">
+
+  {% if not company.is_approved %}
+  <div class="alert alert-warning rounded-3 mb-4" style="font-size:13px;">
+    ⏳ Your company profile is pending admin approval. Jobs posted will be reviewed before going live.
+  </div>
+  {% endif %}
+
+  <!-- Stats -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="stat-card" style="border-left:4px solid #5a67d8;">
+        <div class="sv" style="color:#5a67d8;">{{ jobs|length }}</div>
+        <div style="font-size:12px;color:#888;">Jobs Posted</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-card" style="border-left:4px solid #2d6a4f;">
+        <div class="sv" style="color:#2d6a4f;">{{ applications|length }}</div>
+        <div style="font-size:12px;color:#888;">Applications</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-card" style="border-left:4px solid #f59e0b;">
+        <div class="sv" style="color:#f59e0b;">
+          {{ applications|dictsort:"status"|first }}
+        </div>
+        <div style="font-size:12px;color:#888;">Shortlisted</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-card" style="border-left:4px solid #10b981;">
+        <div class="sv" style="color:#10b981;">
+          {% for a in applications %}{% if a.status == 'hired' %}1{% endif %}{% endfor %}
+        </div>
+        <div style="font-size:12px;color:#888;">Hired</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav-tabs-custom">
+    <button class="nav-tab active" onclick="switchP('jobs',this)"><i class="fas fa-briefcase me-1"></i>My Jobs</button>
+    <button class="nav-tab" onclick="switchP('apps',this)"><i class="fas fa-users me-1"></i>Applications</button>
+  </div>
+
+  <!-- Jobs panel -->
+  <div class="panel active" id="p-jobs">
+    {% for job in jobs %}
+    <div class="job-row">
+      <div>
+        <div style="font-weight:700;font-size:15px;color:#1a2c3e;">{{ job.title }}</div>
+        <div style="font-size:12px;color:#888;margin-top:3px;">
+          {{ job.get_job_type_display }} · {{ job.location|default:"Remote" }} ·
+          <strong>{{ job.applications.count }}</strong> applications
+        </div>
+      </div>
+      <div class="d-flex gap-2 align-items-center flex-wrap">
+        {% if job.is_approved %}
+          <span style="background:#dcfce7;color:#166534;border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700;">✓ Live</span>
+        {% else %}
+          <span style="background:#fef3c7;color:#92400e;border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700;">⏳ Pending</span>
+        {% endif %}
+        <a href="{% url 'job_detail' job.id %}" class="btn btn-sm btn-outline-primary rounded-pill" style="font-size:11px;">View</a>
+      </div>
+    </div>
+    {% empty %}
+    <div class="text-center py-5 bg-white rounded-4 shadow-sm">
+      <p class="text-muted">No jobs posted yet.</p>
+      <a href="{% url 'post_job' %}" class="btn btn-primary rounded-pill px-4">Post First Job</a>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Applications panel -->
+  <div class="panel" id="p-apps">
+    {% for app in applications %}
+    <div class="app-row">
+      <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+        <div>
+          <div style="font-weight:700;font-size:15px;color:#1a2c3e;">{{ app.student.get_full_name }}</div>
+          <div style="font-size:13px;color:#888;">{{ app.student.email }}</div>
+          <div style="font-size:12px;color:#5a67d8;margin-top:3px;font-weight:600;">{{ app.job.title }}</div>
+          {% if app.certificate %}
+          <div style="font-size:12px;color:#2d6a4f;margin-top:2px;">
+            🎓 {{ app.certificate.course.title }} — {{ app.certificate.exam_attempt.percentage|floatformat:0 }}%
+          </div>
+          {% endif %}
+          <div style="font-size:11px;color:#aaa;margin-top:3px;">Applied {{ app.applied_at|date:"d M Y" }}</div>
+        </div>
+        <div class="d-flex gap-2 align-items-center flex-wrap">
+          {% if app.resume %}
+          <a href="{{ app.resume.url }}" target="_blank" class="btn btn-sm btn-outline-secondary rounded-pill" style="font-size:11px;">
+            <i class="fas fa-file me-1"></i>Resume
+          </a>
+          {% endif %}
+          <select class="status-select" onchange="updateStatus({{ app.id }}, this.value, this)">
+            {% for val, label in app.STATUS_CHOICES %}
+            <option value="{{ val }}" {% if app.status == val %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      {% if app.cover_letter %}
+      <div style="background:#f8fafd;border-radius:10px;padding:10px 14px;margin-top:10px;font-size:13px;color:#555;line-height:1.6;">
+        {{ app.cover_letter|truncatechars:200 }}
+      </div>
+      {% endif %}
+    </div>
+    {% empty %}
+    <div class="text-center py-5 bg-white rounded-4 shadow-sm">
+      <p class="text-muted">No applications received yet.</p>
+    </div>
+    {% endfor %}
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function switchP(id, btn) {
+  document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active');});
+  document.querySelectorAll('.nav-tab').forEach(function(b){b.classList.remove('active');});
+  document.getElementById('p-'+id).classList.add('active');
+  btn.classList.add('active');
+}
+
+function updateStatus(appId, status, sel) {
+  var csrf = document.cookie.match(/csrftoken=([^;]+)/);
+  csrf = csrf ? csrf[1] : '';
+  fetch('/jobs/application/' + appId + '/status/', {
+    method: 'POST',
+    headers: {'Content-Type':'application/x-www-form-urlencoded','X-CSRFToken': csrf},
+    body: 'status=' + encodeURIComponent(status)
+  }).then(function(r){return r.json();}).then(function(d){
+    if(d.ok) {
+      sel.style.background = '#dcfce7';
+      setTimeout(function(){sel.style.background='';}, 1500);
+    }
+  });
+}
+</script>
+{% endblock %}

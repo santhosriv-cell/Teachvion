@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% block title %}My Job Applications — Teachvion{% endblock %}
+
+{% block extra_style %}
+
+{% endblock %}
+
+{% block content %}
+<div class="page-hero">
+  <div class="container">
+    <h3 class="fw-bold mb-1">📋 My Job Applications</h3>
+    <p class="mb-0 opacity-75" style="font-size:14px;">{{ applications|length }} application{{ applications|length|pluralize }} submitted</p>
+  </div>
+</div>
+
+<div class="container pb-5">
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div></div>
+    <a href="{% url 'job_board' %}" class="btn btn-primary rounded-pill px-4">
+      <i class="fas fa-search me-1"></i>Browse More Jobs
+    </a>
+  </div>
+
+  {% if applications %}
+    {% for app in applications %}
+    <div class="app-card {{ app.status }}">
+      <div class="d-flex gap-3 align-items-start flex-wrap">
+        <div class="co-logo-sm">
+          {% if app.job.company.logo %}<img src="{{ app.job.company.logo.url }}" alt="">
+          {% else %}{{ app.job.company.name|first|upper }}{% endif %}
+        </div>
+        <div style="flex:1;">
+          <div style="font-weight:700;font-size:16px;color:#1a2c3e;">{{ app.job.title }}</div>
+          <div style="font-size:13px;color:#5a67d8;font-weight:600;">{{ app.job.company.name }}</div>
+          <div style="font-size:12px;color:#888;margin-top:3px;">
+            Applied {{ app.applied_at|date:"d M Y" }} &nbsp;·&nbsp;
+            {{ app.job.get_job_type_display }}
+            {% if app.job.location %}&nbsp;·&nbsp;{{ app.job.location }}{% endif %}
+          </div>
+          {% if app.certificate %}
+          <div style="font-size:12px;color:#2d6a4f;margin-top:4px;font-weight:600;">
+            🎓 {{ app.certificate.course.title }} — {{ app.certificate.exam_attempt.percentage|floatformat:0 }}%
+          </div>
+          {% endif %}
+        </div>
+        <div class="text-end">
+          <span class="status-chip s-{{ app.status }}">
+            {% if app.status == 'applied' %}📤 Applied
+            {% elif app.status == 'reviewing' %}🔍 Under Review
+            {% elif app.status == 'shortlisted' %}⭐ Shortlisted
+            {% elif app.status == 'rejected' %}❌ Rejected
+            {% elif app.status == 'hired' %}🎉 Hired!
+            {% endif %}
+          </span>
+          <div style="font-size:11px;color:#aaa;margin-top:4px;">Updated {{ app.updated_at|date:"d M" }}</div>
+        </div>
+      </div>
+      {% if app.status == 'hired' %}
+      <div style="background:#d1fae5;border-radius:10px;padding:10px 14px;margin-top:12px;font-size:13px;color:#065f46;font-weight:600;">
+        🎉 Congratulations! Contact {{ app.job.company.name }} to confirm your start date.
+      </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  {% else %}
+  <div class="text-center py-5 bg-white rounded-4 shadow-sm">
+    <div style="font-size:56px;margin-bottom:16px;">📭</div>
+    <h5 class="fw-bold mb-2">No applications yet</h5>
+    <p class="text-muted mb-4">Start applying to jobs that match your certificates.</p>
+    <a href="{% url 'job_board' %}" class="btn btn-primary rounded-pill px-4">Browse Job Board</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

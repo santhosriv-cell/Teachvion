@@ -1,0 +1,696 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Trainer Dashboard — Teachvion{% endblock %}
+
+{% block extra_style %}
+
+{% endblock %}
+
+{% block content %}
+
+<!-- Header -->
+<div class="dash-header">
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+      <div>
+        <span style="background:rgba(255,255,255,.2);color:white;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;">Trainer Dashboard</span>
+        <h3 class="mt-2 mb-1 fw-bold">Welcome, {{ trainer.first_name }}! 🧑‍🏫</h3>
+        <p class="mb-0 opacity-75" style="font-size:14px;">{{ trainer.email }}</p>
+      </div>
+      <div class="d-flex gap-2">
+        <a href="{% url 'profile' %}" class="btn btn-light rounded-pill px-3" style="font-size:13px;">
+          <i class="fas fa-user-edit me-1"></i>Edit Profile
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container my-4">
+
+  <!-- Stats -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="stat-card">
+        <div class="number">{{ total_courses }}</div>
+        <div class="label">My Courses</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-card" style="border-color:#2d6a4f;">
+        <div class="number" style="color:#2d6a4f;">{{ total_students }}</div>
+        <div class="label">Total Students</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-card" style="border-color:#f59e0b;">
+        <div class="number" style="color:#f59e0b;">
+          {{ total_lessons }}
+        </div>
+        <div class="label">Total Lessons</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-card" style="border-color:#8b5cf6;">
+        <div class="number" style="color:#8b5cf6;">
+          {{ total_live_classes }}
+        </div>
+        <div class="label">Live Classes</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Nav tabs -->
+  <div class="trainer-nav">
+    <button class="t-tab active" onclick="switchTab('courses',this)">
+      <i class="fas fa-book"></i>My Courses
+    </button>
+    <button class="t-tab" onclick="switchTab('upload',this)">
+      <i class="fas fa-upload"></i>Upload Videos
+    </button>
+    <button class="t-tab" onclick="switchTab('live',this)">
+      <i class="fas fa-video"></i>Live Classes
+    </button>
+    <button class="t-tab" onclick="switchTab('students',this)">
+      <i class="fas fa-users"></i>Students
+    </button>
+    <button class="t-tab" onclick="switchTab('profile',this)">
+      <i class="fas fa-user-edit"></i>My Profile
+    </button>
+     <button class="t-tab" onclick="switchTab('attendance',this)" id="attTabBtn">
+      <i class="fas fa-clipboard-check"></i>Attendance
+      <span id="liveClassBadge" style="display:none;background:#dc2626;color:white;border-radius:20px;padding:0 6px;font-size:10px;margin-left:2px;">LIVE</span>
+    </button>
+  </div>
+
+  <!-- ═══════════════════════════════════════
+       TAB 1: MY COURSES
+  ═══════════════════════════════════════ -->
+  <div id="panel-courses" class="panel active">
+    {% if courses_data %}
+      {% for item in courses_data %}
+      <div class="course-card-t">
+        <div class="ch">
+          <div>
+            <h6 class="fw-bold mb-1" style="color:#1a5f7a;">{{ item.course.title }}</h6>
+            <div class="d-flex gap-2 flex-wrap">
+              <span class="badge bg-secondary" style="font-size:10px;">{{ item.course.get_category_display }}</span>
+              <span class="badge" style="background:#eef2ff;color:#5a67d8;font-size:10px;">{{ item.student_count }} students</span>
+              <span class="badge" style="background:#f0fdf4;color:#166534;font-size:10px;">{{ item.lesson_count }} lessons</span>
+              <span class="badge" style="background:#ecfccb;color:#166534;font-size:10px;">{{ item.attendance_students }} present</span>
+              {% if item.live_classes %}
+              <span class="badge" style="background:#e0f2fe;color:#0c4a6e;font-size:10px;">{{ item.live_classes|length }} upcoming live</span>
+              {% endif %}
+              <span style="font-size:12px;color:#2d6a4f;font-weight:700;">₹{{ item.course.price }}</span>
+            </div>
+          </div>
+          <div class="d-flex gap-2 flex-wrap">
+            <a href="{% url 'upload_lesson' item.course.id %}" class="btn btn-sm btn-primary rounded-pill" style="font-size:12px;">
+              <i class="fas fa-upload me-1"></i>Manage Lessons
+            </a>
+            <a href="{% url 'schedule_live_class' item.course.id %}" class="btn btn-sm btn-outline-success rounded-pill" style="font-size:12px;">
+              <i class="fas fa-video me-1"></i>Schedule Live Class
+            </a>
+          </div>
+        </div>
+        <div class="cb">
+          <!-- Progress overview -->
+          {% if item.students %}
+          <div class="d-flex justify-content-between mb-2">
+            <span style="font-size:13px;font-weight:600;color:#555;">Student Progress</span>
+            <span style="font-size:12px;color:#888;">{{ item.student_count }} enrolled</span>
+          </div>
+          {% for s in item.students|slice:":3" %}
+          <div class="student-row">
+            <div class="s-avatar">{{ s.student.first_name|first|upper }}{{ s.student.last_name|first|upper }}</div>
+            <div style="flex:1;">
+              <div style="font-size:13px;font-weight:600;">{{ s.student.get_full_name }}</div>
+              <div class="d-flex align-items-center gap-2 mt-1">
+                <div class="mini-prog-bg">
+                  <div class="mini-prog-fill" style="width:{{ s.progress }}%;"></div>
+                </div>
+                <small style="color:#1a5f7a;font-weight:700;min-width:36px;">{{ s.progress }}%</small>
+              </div>
+            </div>
+            {% if s.exam_attempt %}
+            <span class="badge {% if s.exam_attempt.passed %}bg-success{% else %}bg-danger{% endif %}">
+              {{ s.exam_attempt.percentage|floatformat:0 }}%
+            </span>
+            {% endif %}
+          </div>
+          {% endfor %}
+          {% if item.student_count > 3 %}
+          <div style="font-size:12px;color:#888;text-align:center;margin-top:8px;">
+            +{{ item.student_count|add:"-3" }} more students
+          </div>
+          {% endif %}
+          {% else %}
+          <div style="text-align:center;padding:20px;color:#aaa;">
+            <i class="fas fa-users fa-2x mb-2"></i><br>
+            No students enrolled yet.
+          </div>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="text-center py-5 bg-white rounded-4 shadow-sm">
+        <i class="fas fa-chalkboard-teacher fa-3x text-muted mb-3"></i>
+        <h5>No courses assigned yet</h5>
+        <p class="text-muted">Contact the admin to get courses assigned to you.</p>
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- ═══════════════════════════════════════
+       TAB 2: UPLOAD VIDEOS
+  ═══════════════════════════════════════ -->
+  <div id="panel-upload" class="panel">
+    {% if courses_data %}
+    <div class="row g-4">
+      <div class="col-lg-5">
+        <!-- Upload Form -->
+        <div style="background:white;border-radius:20px;padding:28px;box-shadow:0 4px 15px rgba(0,0,0,.07);">
+          <h5 class="fw-bold mb-1"><i class="fas fa-upload me-2 text-primary"></i>Upload New Lesson</h5>
+          <p class="text-muted mb-4" style="font-size:13px;">Add videos, PDFs and notes for your students.</p>
+
+          <form method="post" enctype="multipart/form-data"
+                action="{% url 'upload_lesson' courses_data.0.course.id %}">
+            {% csrf_token %}
+
+            <!-- Select Course -->
+            <label class="field-label">Select Course *</label>
+            <select class="field-input" name="course_select" id="courseSelect"
+                    onchange="updateUploadAction(this)">
+              {% for item in courses_data %}
+              <option value="{{ item.course.id }}"
+                      data-url="{% url 'upload_lesson' item.course.id %}">
+                {{ item.course.title }}
+              </option>
+              {% endfor %}
+            </select>
+
+            <!-- Title -->
+            <label class="field-label">Lesson Title *</label>
+            <input class="field-input" type="text" name="title"
+                   placeholder="e.g. Introduction to Python Variables" required>
+
+            <!-- Video File -->
+            <label class="field-label"><i class="fas fa-video me-1 text-success"></i>Upload Video File</label>
+            <div class="upload-zone mb-3">
+              <div style="font-size:28px;margin-bottom:6px;">🎬</div>
+              <input type="file" name="video_file" accept="video/*"
+                     onchange="showFileName(this,'vName')">
+              <div id="vName" style="font-size:12px;color:#888;margin-top:4px;">MP4, WebM, MOV — max 500MB</div>
+            </div>
+
+            <div style="display:flex;align-items:center;gap:10px;color:#aaa;font-size:12px;margin-bottom:12px;">
+              <div style="flex:1;height:1px;background:#e5e7eb;"></div>OR<div style="flex:1;height:1px;background:#e5e7eb;"></div>
+            </div>
+
+            <!-- Video URL -->
+            <label class="field-label"><i class="fas fa-link me-1 text-info"></i>YouTube / Vimeo Embed URL</label>
+            <input class="field-input" type="url" name="video_url"
+                   placeholder="https://www.youtube.com/embed/...">
+            <div style="font-size:11px;color:#aaa;margin-top:-8px;margin-bottom:12px;">
+              YouTube: Share → Embed → copy the src URL
+            </div>
+
+            <!-- PDF -->
+            <label class="field-label"><i class="fas fa-file-pdf me-1 text-danger"></i>PDF / Slides (optional)</label>
+            <div class="upload-zone mb-3">
+              <div style="font-size:24px;margin-bottom:4px;">📄</div>
+              <input type="file" name="pdf_file" accept=".pdf"
+                     onchange="showFileName(this,'pName')">
+              <div id="pName" style="font-size:12px;color:#888;margin-top:4px;">PDF only — max 20MB</div>
+            </div>
+
+            <!-- Notes -->
+            <label class="field-label"><i class="fas fa-sticky-note me-1 text-warning"></i>Lesson Notes (optional)</label>
+            <textarea class="field-input" name="notes" rows="3"
+                      placeholder="Key concepts, code snippets, summary..."
+                      style="resize:vertical;"></textarea>
+
+            <!-- Order + Duration -->
+            <div class="row g-2">
+              <div class="col-6">
+                <label class="field-label">Lesson Order</label>
+                <input class="field-input mb-0" type="number" name="order" min="1"
+                       value="{{ courses_data.0.lesson_count|add:'1' }}" placeholder="1">
+              </div>
+              <div class="col-6">
+                <label class="field-label">Duration (minutes)</label>
+                <input class="field-input mb-0" type="number" name="duration_mins" min="1" placeholder="30">
+              </div>
+            </div>
+
+            <button type="submit" class="btn w-100 rounded-pill fw-bold mt-4"
+                    style="background:linear-gradient(135deg,#1a5f7a,#2d6a4f);color:white;padding:12px;">
+              <i class="fas fa-upload me-2"></i>Upload Lesson
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <div class="col-lg-7">
+        <!-- Lessons per course -->
+        {% for item in courses_data %}
+        <div style="background:white;border-radius:18px;padding:22px;box-shadow:0 4px 15px rgba(0,0,0,.06);margin-bottom:16px;">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="fw-bold mb-0" style="color:#1a5f7a;">{{ item.course.title }}</h6>
+            <span style="background:#eef2ff;color:#5a67d8;border-radius:20px;padding:2px 10px;font-size:11px;font-weight:700;">
+              {{ item.lesson_count }} lessons
+            </span>
+          </div>
+          {% for lesson in item.course.lessons.all %}
+          <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #f5f5f5;">
+            <div style="width:28px;height:28px;border-radius:50%;background:#1a5f7a;color:white;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              {{ forloop.counter }}
+            </div>
+            <div style="flex:1;">
+              <div style="font-size:13px;font-weight:600;color:#1a2c3e;">{{ lesson.title }}</div>
+              <div style="display:flex;gap:6px;margin-top:3px;flex-wrap:wrap;">
+                {% if lesson.duration_mins %}<span style="font-size:11px;background:#eef2ff;color:#5a67d8;border-radius:10px;padding:1px 7px;font-weight:600;">{{ lesson.duration_mins }}m</span>{% endif %}
+                {% if lesson.video_file %}<span style="font-size:11px;background:#dcfce7;color:#166534;border-radius:10px;padding:1px 7px;font-weight:600;">Video</span>{% endif %}
+                {% if lesson.video_url %}<span style="font-size:11px;background:#dbeafe;color:#1e40af;border-radius:10px;padding:1px 7px;font-weight:600;">URL</span>{% endif %}
+                {% if lesson.pdf_file %}<span style="font-size:11px;background:#fee2e2;color:#991b1b;border-radius:10px;padding:1px 7px;font-weight:600;">PDF</span>{% endif %}
+                {% if lesson.notes %}<span style="font-size:11px;background:#fef9c3;color:#854d0e;border-radius:10px;padding:1px 7px;font-weight:600;">Notes</span>{% endif %}
+              </div>
+            </div>
+            <a href="{% url 'delete_lesson' lesson.id %}"
+               class="btn btn-sm btn-outline-danger rounded-pill"
+               style="font-size:11px;padding:3px 10px;"
+               onclick="return confirm('Delete lesson: {{ lesson.title|escapejs }}?')">
+              <i class="fas fa-trash"></i>
+            </a>
+          </div>
+          {% empty %}
+          <div style="text-align:center;color:#aaa;padding:16px;font-size:13px;">
+            No lessons yet — use the form to upload your first lesson.
+          </div>
+          {% endfor %}
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% else %}
+    <div class="text-center py-5 bg-white rounded-4 shadow-sm">
+      <i class="fas fa-upload fa-3x text-muted mb-3"></i>
+      <h5>No courses to upload lessons for</h5>
+      <p class="text-muted">You need to be assigned a course first. Contact admin.</p>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- ═══════════════════════════════════════
+       TAB 3: LIVE CLASSES
+  ═══════════════════════════════════════ -->
+  <div id="panel-live" class="panel">
+    {% if trainer_live_classes %}
+    <div class="row g-4">
+      {% for lc in trainer_live_classes %}
+      <div class="col-lg-6">
+        <div class="course-card-t">
+          <div class="ch" style="gap:12px;">
+            <div>
+              <h6 class="fw-bold mb-1" style="color:#1a5f7a;">{{ lc.title }}</h6>
+              <div class="d-flex gap-2 flex-wrap">
+                <span class="badge bg-secondary" style="font-size:10px;">{{ lc.course.get_category_display }}</span>
+                <span class="badge" style="background:#eef2ff;color:#5a67d8;font-size:10px;">{{ lc.course.get_enrolled_count }} students</span>
+                <span class="badge" style="background:#f0fdf4;color:#166534;font-size:10px;">{{ lc.duration_mins }} mins</span>
+                <span class="badge {% if lc.is_live_now %}bg-success{% else %}bg-info{% endif %}" style="color:white;font-size:10px;">
+                  {% if lc.is_live_now %}Live Now{% else %}Upcoming{% endif %}
+                </span>
+              </div>
+            </div>
+            <div class="cb" style="background:#f8fafc;border-radius:14px;padding:18px;">
+              <div style="font-size:13px;color:#334155;">{{ lc.scheduled_at|date:"D, d M Y H:i" }}</div>
+              <div style="font-size:13px;color:#475569;margin-top:8px;">{{ lc.description|truncatechars:80 }}</div>
+              <div class="mt-3 d-flex justify-content-between align-items-center">
+                <a href="{% url 'join_live_class' lc.id %}" class="btn btn-sm btn-primary rounded-pill">
+                  {% if lc.is_live_now %}Join Now{% else %}Open Room{% endif %}
+                </a>
+                <span style="font-size:12px;color:#64748b;">Room: {{ lc.room_name|slice:":10" }}...</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-5 bg-white rounded-4 shadow-sm">
+      <i class="fas fa-video fa-2x text-muted mb-3"></i>
+      <h5>No live classes scheduled yet</h5>
+      <p class="text-muted">Use the course cards or schedule page to add your next live session.</p>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- ═══════════════════════════════════════
+       TAB 4: STUDENTS
+  ═══════════════════════════════════════ -->
+  <div id="panel-students" class="panel">
+    {% for item in courses_data %}
+    <div class="course-card-t">
+      <div class="ch">
+        <h6 class="fw-bold mb-0" style="color:#1a5f7a;">{{ item.course.title }}</h6>
+        <span style="background:#eef2ff;color:#5a67d8;border-radius:20px;padding:3px 12px;font-size:12px;font-weight:700;">
+          {{ item.student_count }} students
+        </span>
+      </div>
+      <div class="cb">
+        {% if item.students %}
+        <div style="overflow-x:auto;">
+          <table class="table table-hover mb-0" style="font-size:13px;">
+            <thead>
+              <tr style="background:#f8fafd;">
+                <th style="font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.4px;">#</th>
+                <th style="font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.4px;">Student</th>
+                <th style="font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.4px;">Progress</th>
+                <th style="font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.4px;">Exam Score</th>
+                <th style="font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.4px;">Enrolled</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for s in item.students %}
+              <tr>
+                <td style="color:#aaa;">{{ forloop.counter }}</td>
+                <td>
+                  <div class="d-flex align-items-center gap-2">
+                    <div class="s-avatar" style="width:32px;height:32px;font-size:11px;">
+                      {{ s.student.first_name|first|upper }}{{ s.student.last_name|first|upper }}
+                    </div>
+                    <div>
+                      <div class="fw-semibold">{{ s.student.get_full_name }}</div>
+                      <div style="font-size:11px;color:#aaa;">{{ s.student.email }}</div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="d-flex align-items-center gap-2">
+                    <div class="mini-prog-bg" style="width:80px;">
+                      <div class="mini-prog-fill" style="width:{{ s.progress }}%;"></div>
+                    </div>
+                    <span style="font-size:12px;font-weight:700;color:#1a5f7a;">{{ s.progress }}%</span>
+                  </div>
+                </td>
+                <td>
+                  {% if s.exam_attempt %}
+                  <span class="badge {% if s.exam_attempt.passed %}bg-success{% else %}bg-danger{% endif %}">
+                    {{ s.exam_attempt.percentage|floatformat:0 }}%
+                    {% if s.exam_attempt.passed %}✓{% else %}✗{% endif %}
+                  </span>
+                  {% else %}
+                  <span style="color:#aaa;font-size:12px;">Not taken</span>
+                  {% endif %}
+                </td>
+                <td style="color:#888;font-size:12px;">{{ s.enrolled_at|date:"d M Y" }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div style="text-align:center;padding:24px;color:#aaa;">
+          <i class="fas fa-user-slash fa-2x mb-2"></i>
+          <p style="margin:0;">No students enrolled yet.</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    {% empty %}
+    <div class="text-center py-5 bg-white rounded-4 shadow-sm">
+      <p class="text-muted">No courses assigned.</p>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- ═══════════════════════════════════════
+       TAB 5: MY PROFILE
+  ═══════════════════════════════════════ -->
+  <div id="panel-profile" class="panel">
+    <div class="row justify-content-center">
+      <div class="col-lg-7">
+        <div class="profile-card">
+
+          <!-- Avatar -->
+          <div class="profile-avatar-wrap">
+            <div class="profile-avatar" style="position:relative;display:inline-flex;">
+              {% if trainer.profile_pic %}
+                <img src="{{ trainer.profile_pic.url }}" alt="Profile">
+              {% else %}
+                {{ trainer.first_name|first|upper }}{{ trainer.last_name|first|upper }}
+              {% endif %}
+            </div>
+            <h5 class="fw-bold mt-3 mb-1">{{ trainer.get_full_name }}</h5>
+            <span style="background:#eef2ff;color:#1a5f7a;border-radius:20px;padding:4px 14px;font-size:12px;font-weight:700;">Trainer</span>
+          </div>
+
+          <!-- Stats strip -->
+          <div class="row g-0 mb-4 text-center" style="background:#f8fafd;border-radius:12px;overflow:hidden;">
+            <div class="col-4" style="padding:14px 0;border-right:1px solid #e9edf2;">
+              <div style="font-size:22px;font-weight:800;color:#1a5f7a;">{{ total_courses }}</div>
+              <div style="font-size:11px;color:#888;">Courses</div>
+            </div>
+            <div class="col-4" style="padding:14px 0;border-right:1px solid #e9edf2;">
+              <div style="font-size:22px;font-weight:800;color:#2d6a4f;">{{ total_students }}</div>
+              <div style="font-size:11px;color:#888;">Students</div>
+            </div>
+            <div class="col-4" style="padding:14px 0;">
+              <div style="font-size:22px;font-weight:800;color:#f59e0b;">
+                {{ total_lessons }}
+              </div>
+              <div style="font-size:11px;color:#888;">Lessons</div>
+            </div>
+          </div>
+
+          <!-- Profile edit form -->
+          <form method="post" enctype="multipart/form-data" action="{% url 'profile' %}">
+            {% csrf_token %}
+
+            <div class="row g-3">
+              <div class="col-6">
+                <label class="field-label">First Name *</label>
+                <input class="field-input mb-0" type="text" name="first_name"
+                       value="{{ trainer.first_name }}" required>
+              </div>
+              <div class="col-6">
+                <label class="field-label">Last Name *</label>
+                <input class="field-input mb-0" type="text" name="last_name"
+                       value="{{ trainer.last_name }}" required>
+              </div>
+            </div>
+            <div class="mb-3"></div>
+
+            <label class="field-label">Email</label>
+            <input class="field-input" type="email" value="{{ trainer.email }}" disabled
+                   style="background:#f9fafb;color:#888;">
+            <div style="font-size:11px;color:#aaa;margin-top:-8px;margin-bottom:12px;">
+              Email cannot be changed. Contact admin if needed.
+            </div>
+
+            <label class="field-label">Phone Number</label>
+            <input class="field-input" type="text" name="phone"
+                   value="{{ trainer.phone }}" placeholder="+91 XXXXXXXXXX">
+
+            <label class="field-label">Bio / Expertise</label>
+            <textarea class="field-input" name="bio" rows="3"
+                      placeholder="Tell students about your expertise and teaching style..."
+                      style="resize:none;">{{ trainer.bio }}</textarea>
+
+            <label class="field-label">Profile Picture</label>
+            <div class="upload-zone mb-4">
+              <div style="font-size:24px;margin-bottom:6px;">📷</div>
+              <input type="file" name="profile_pic" accept="image/*"
+                     onchange="previewAvatar(this)">
+              <div style="font-size:12px;color:#888;margin-top:4px;">JPG, PNG — max 5MB</div>
+            </div>
+
+            <!-- Preview -->
+            <div id="avatarPreview" style="display:none;text-align:center;margin-bottom:14px;">
+              <img id="previewImg" src="" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px solid #1a5f7a;">
+              <div style="font-size:12px;color:#888;margin-top:6px;">New photo preview</div>
+            </div>
+
+            <button type="submit" class="btn w-100 rounded-pill fw-bold"
+                    style="background:linear-gradient(135deg,#1a5f7a,#2d6a4f);color:white;padding:13px;font-size:15px;">
+              <i class="fas fa-save me-2"></i>Save Profile
+            </button>
+          </form>
+
+        </div>
+      </div>
+    </div>
+  </div>
+   <!-- ═══════════════════════════════════════
+       TAB 6: LIVE ATTENDANCE
+  ═══════════════════════════════════════ -->
+  <div id="panel-attendance" class="panel">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+      <h5 class="fw-bold mb-0"><i class="fas fa-clipboard-check me-2 text-success"></i>Live Class Attendance</h5>
+      <a href="{% url 'my_live_classes' %}" class="btn btn-sm btn-outline-primary rounded-pill" style="font-size:12px;">
+        <i class="fas fa-list me-1"></i>All Classes
+      </a>
+    </div>
+
+    {% if live_attendance_data %}
+      {% for item in live_attendance_data %}
+      {% with lc=item.class %}
+      <div style="background:white;border-radius:18px;padding:20px 22px;box-shadow:0 4px 15px rgba(0,0,0,.06);margin-bottom:16px;{% if lc.is_live_now %}border-left:4px solid #dc2626;{% elif lc.has_ended %}border-left:4px solid #94a3b8;opacity:.8;{% else %}border-left:4px solid #1a5f7a;{% endif %}">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3">
+          <div>
+            <div style="font-weight:700;font-size:15px;color:#1a2c3e;">{{ lc.title }}</div>
+            <div style="font-size:12px;color:#64748b;margin-top:2px;">
+              {{ lc.course.title }} &nbsp;·&nbsp;
+              {{ lc.scheduled_at|date:"d M Y H:i" }} &nbsp;·&nbsp;
+              {{ lc.duration_mins }} min
+            </div>
+          </div>
+          <div class="d-flex align-items-center gap-2">
+            {% if lc.is_live_now %}
+            <span style="background:#dcfce7;color:#166534;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;display:inline-flex;align-items:center;gap:5px;">
+              <span style="width:7px;height:7px;border-radius:50%;background:#166534;animation:blink 1s infinite;"></span>LIVE
+            </span>
+            {% endif %}
+            <div style="font-size:22px;font-weight:800;color:#2d6a4f;" id="att-count-{{ lc.id }}">{{ item.att_count }}</div>
+            <div style="font-size:12px;color:#888;">attended</div>
+          </div>
+        </div>
+
+        {% if lc.is_live_now %}
+        <!-- Live attendance list auto-refreshes -->
+        <div id="live-att-list-{{ lc.id }}" style="margin-bottom:12px;">
+          <div style="font-size:12px;color:#888;font-weight:600;margin-bottom:8px;">Students currently in class:</div>
+          <div id="att-students-{{ lc.id }}" style="display:flex;flex-wrap:wrap;gap:6px;">
+            <span style="font-size:12px;color:#aaa;">Loading...</span>
+          </div>
+        </div>
+        {% endif %}
+
+        <a href="{% url 'attendance_detail' lc.id %}"
+           class="btn btn-sm rounded-pill fw-bold"
+           style="background:linear-gradient(135deg,#1a5f7a,#2d6a4f);color:white;font-size:12px;">
+          <i class="fas fa-clipboard-list me-1"></i>
+          {% if lc.is_live_now %}View Live Attendance{% else %}View Full Report{% endif %}
+        </a>
+      </div>
+      {% endwith %}
+      {% endfor %}
+    {% else %}
+    <div class="text-center py-5 bg-white rounded-4 shadow-sm">
+      <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+      <h5>No live classes scheduled</h5>
+      <p class="text-muted mb-3">Schedule a class from one of your courses to see attendance here.</p>
+      {% if courses_data %}
+      <a href="{% url 'schedule_live_class' courses_data.0.course.id %}" class="btn btn-primary rounded-pill px-4">
+        <i class="fas fa-calendar-plus me-1"></i>Schedule First Class
+      </a>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div> 
+
+</div>{# end container #}
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+/* ── Tab switching ── */
+function switchTab(id, btn) {
+  document.querySelectorAll('.panel').forEach(function(p) { p.classList.remove('active'); });
+  document.querySelectorAll('.t-tab').forEach(function(b) { b.classList.remove('active'); });
+  document.getElementById('panel-' + id).classList.add('active');
+  btn.classList.add('active');
+}
+
+/* ── Show filename after file pick ── */
+function showFileName(input, labelId) {
+  var label = document.getElementById(labelId);
+  if (input.files && input.files[0]) {
+    var f = input.files[0];
+    var size = (f.size / 1024 / 1024).toFixed(1);
+    label.textContent = '✅ ' + f.name + ' (' + size + ' MB)';
+    label.style.color = '#2d6a4f';
+    label.style.fontWeight = '600';
+  }
+}
+
+/* ── Update upload form action when course changes ── */
+function updateUploadAction(select) {
+  var opt = select.options[select.selectedIndex];
+  var url = opt.dataset.url;
+  if (url) {
+    select.closest('form').action = url;
+  }
+}
+
+/* ── Avatar preview ── */
+function previewAvatar(input) {
+  if (input.files && input.files[0]) {
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      document.getElementById('previewImg').src = e.target.result;
+      document.getElementById('avatarPreview').style.display = 'block';
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+
+/* ── Auto-open tab from URL hash ── */
+var hash = window.location.hash.replace('#', '');
+if (hash) {
+  var btn = document.querySelector('.t-tab[onclick*="' + hash + '"]');
+  if (btn) btn.click();
+}
+
+/* ── Live attendance auto-refresh (every 15s) ── */
+(function() {
+  // Find all live classes in attendance panel
+  var livePanels = document.querySelectorAll('[id^="att-students-"]');
+  if (!livePanels.length) return;
+
+  function refreshLiveAtt() {
+    livePanels.forEach(function(el) {
+      var classId = el.id.replace('att-students-', '');
+      var url = '/live-class/' + classId + '/live-attendance/';
+      fetch(url)
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          // Update count
+          var countEl = document.getElementById('att-count-' + classId);
+          if (countEl) countEl.textContent = data.count;
+
+          // Show student avatars
+          if (!data.attendees.length) {
+            el.innerHTML = '<span style="font-size:12px;color:#aaa;">No students yet</span>';
+            return;
+          }
+          el.innerHTML = data.attendees.map(function(a) {
+            var initials = a.name.split(' ').map(function(n){return n[0]||'';}).slice(0,2).join('').toUpperCase();
+            return '<span title="' + escH(a.name) + ' (joined ' + a.joined_at + ')" ' +
+              'style="display:inline-flex;align-items:center;gap:5px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:20px;padding:3px 10px;font-size:12px;font-weight:600;color:#166534;">' +
+              '<span style="width:20px;height:20px;border-radius:50%;background:#2d6a4f;color:white;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;">' + initials + '</span>' +
+              escH(a.name) +
+              '</span>';
+          }).join('');
+
+          // Show LIVE badge on tab
+          var badge = document.getElementById('liveClassBadge');
+          if (badge && data.is_live) badge.style.display = 'inline';
+        })
+        .catch(function(){});
+    });
+  }
+
+  function escH(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  // Initial load + every 15 seconds
+  refreshLiveAtt();
+  setInterval(refreshLiveAtt, 15000);
+})();
+
+
+</script>
+{% endblock %}

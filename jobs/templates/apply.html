@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block title %}Apply — {{ job.title }} — Teachvion{% endblock %}
+
+{% block extra_style %}
+
+
+{% endblock %}
+
+{% block content %}
+<div class="apply-wrap">
+  <a href="{% url 'job_detail' job.id %}" style="font-size:13px;color:#888;text-decoration:none;display:block;margin-bottom:16px;">← Back to Job</a>
+
+  <div class="apply-card">
+    <h4 class="fw-bold mb-1">Apply for: {{ job.title }}</h4>
+    <p style="font-size:14px;color:#888;margin-bottom:24px;">{{ job.company.name }}{% if job.location %} · {{ job.location }}{% endif %}</p>
+
+    <!-- Qualifying cert -->
+    <div class="cert-box">
+      <div style="font-size:13px;font-weight:700;color:#2d6a4f;margin-bottom:4px;">🎓 Qualifying Certificate</div>
+      <div style="font-size:14px;color:#1a2c3e;font-weight:600;">{{ qualifying_cert.course.title }}</div>
+      <div style="font-size:13px;color:#555;margin-top:2px;">
+        Certificate #{{ qualifying_cert.certificate_number }} &nbsp;·&nbsp;
+        Score: <strong style="color:#2d6a4f;">{{ qualifying_cert.exam_attempt.percentage|floatformat:1 }}%</strong>
+      </div>
+    </div>
+
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <label class="field-label"><i class="fas fa-file-alt me-1"></i>Resume / CV (optional)</label>
+      <input class="field-input" type="file" name="resume" accept=".pdf,.doc,.docx">
+      <div style="font-size:11px;color:#aaa;margin-top:-10px;margin-bottom:14px;">PDF or Word — max 5MB</div>
+
+      <label class="field-label"><i class="fas fa-pen me-1"></i>Cover Letter (optional but recommended)</label>
+      <textarea class="field-input" name="cover_letter"
+                placeholder="Tell the company why you're a great fit for this role. Mention your skills, projects, and what excites you about this opportunity..."></textarea>
+
+      <button type="submit" class="submit-btn">
+        <i class="fas fa-paper-plane me-2"></i>Submit Application
+      </button>
+    </form>
+  </div>
+</div>
+{% endblock %}

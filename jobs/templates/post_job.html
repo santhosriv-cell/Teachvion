@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+{% block title %}Post a Job — {{ company.name }} — Teachvion{% endblock %}
+
+{% block extra_style %}
+
+
+{% endblock %}
+
+{% block content %}
+<div class="post-wrap">
+  <a href="{% url 'company_portal' %}" style="font-size:13px;color:#888;text-decoration:none;display:block;margin-bottom:16px;">← Company Portal</a>
+
+  <div class="post-card">
+    <h4 class="fw-bold mb-1">📋 Post a New Job</h4>
+    <p style="font-size:14px;color:#888;margin-bottom:4px;">{{ company.name }}</p>
+    {% if not company.is_approved %}
+    <div style="background:#fef3c7;border-radius:10px;padding:10px 14px;font-size:13px;color:#92400e;margin-bottom:20px;">
+      ⏳ Your company is pending approval. This job will go live once admin approves your company profile.
+    </div>
+    {% endif %}
+
+    <form method="post">
+      {% csrf_token %}
+
+      <!-- Basic Info -->
+      <div class="section-divider">📌 Basic Information</div>
+
+      <label class="field-label">Job Title *</label>
+      <input class="field-input" type="text" name="title" required
+             placeholder="e.g. Python Backend Developer, Data Analyst Fresher">
+
+      <div class="row g-2">
+        <div class="col-md-6">
+          <label class="field-label">Job Type *</label>
+          <select class="field-input" name="job_type" required>
+            <option value="full_time">Full Time</option>
+            <option value="internship">Internship</option>
+            <option value="part_time">Part Time</option>
+            <option value="contract">Contract</option>
+            <option value="remote">Remote</option>
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="field-label">Experience Level *</label>
+          <select class="field-input" name="level" required>
+            <option value="fresher">Fresher / Entry Level</option>
+            <option value="junior">Junior (1-2 years)</option>
+            <option value="mid">Mid Level (2-5 years)</option>
+            <option value="senior">Senior (5+ years)</option>
+          </select>
+        </div>
+      </div>
+
+      <label class="field-label">Location</label>
+      <input class="field-input" type="text" name="location"
+             placeholder="e.g. Hyderabad, Telangana or Remote">
+
+      <div class="row g-2">
+        <div class="col-md-6">
+          <label class="field-label">Salary Min (₹/year)</label>
+          <input class="field-input" type="number" name="salary_min" placeholder="e.g. 300000">
+        </div>
+        <div class="col-md-6">
+          <label class="field-label">Salary Max (₹/year)</label>
+          <input class="field-input" type="number" name="salary_max" placeholder="e.g. 600000">
+        </div>
+      </div>
+
+      <label class="field-label">Application Deadline</label>
+      <input class="field-input" type="date" name="deadline">
+
+      <!-- Skills -->
+      <div class="section-divider">🛠️ Skills & Requirements</div>
+
+      <label class="field-label">Required Skills</label>
+      <input class="field-input" type="text" name="skills"
+             placeholder="Python, Django, SQL, REST APIs">
+      <div class="tip-box">Separate skills with commas. These appear as tags on your listing.</div>
+
+      <!-- Job Details -->
+      <div class="section-divider">📝 Job Details</div>
+
+      <label class="field-label">Job Description *</label>
+      <textarea class="field-input" name="description" required
+                placeholder="Describe the role, team, and company culture..."></textarea>
+
+      <label class="field-label">Responsibilities</label>
+      <textarea class="field-input" name="responsibilities"
+                placeholder="List the key responsibilities for this role..."></textarea>
+
+      <label class="field-label">Requirements</label>
+      <textarea class="field-input" name="requirements"
+                placeholder="List required qualifications, experience, tools..."></textarea>
+
+      <!-- Certificate Gate -->
+      <div class="section-divider">🎓 Certificate Requirement</div>
+
+      <label class="field-label">Required Course Certificate</label>
+      <select class="field-input" name="required_course">
+        <option value="">Any Teachvion Certificate (all certified students can apply)</option>
+        {% for course in courses %}
+        <option value="{{ course.id }}">{{ course.title }}</option>
+        {% endfor %}
+      </select>
+      <div class="tip-box">
+        Selecting a specific course means only students who completed that course can apply.
+        Leave blank to allow any certified Teachvion student.
+      </div>
+
+      <label class="field-label">Minimum Exam Score Required (%)</label>
+      <input class="field-input" type="number" name="min_exam_score"
+             value="50" min="1" max="100">
+      <div class="tip-box">Students need at least this score in the required course exam to apply. Default is 50%.</div>
+
+      <button type="submit" class="submit-btn">
+        <i class="fas fa-paper-plane me-2"></i>Submit Job for Review
+      </button>
+      <p style="font-size:12px;color:#aaa;text-align:center;margin-top:10px;">
+        Admin will review and approve your listing before it goes live.
+      </p>
+    </form>
+  </div>
+</div>
+{% endblock %}

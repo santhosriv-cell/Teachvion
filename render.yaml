@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: teachvion
+    env: python
+    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput
+    startCommand: gunicorn teachvion.wsgi
+    envVars:
+      - key: DJANGO_SETTINGS_MODULE
+        value: teachvion.settings
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: ALLOWED_HOSTS
+        value: teachvion.onrender.com
+      - key: DATABASE_URL
+        fromDatabase:
+          name: teachvion-db
+          property: connectionString
+
+databases:
+  - name: teachvion-db
+    plan: free

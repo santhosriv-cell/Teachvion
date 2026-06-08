@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}My Live Classes — Teachvion{% endblock %}
+
+{% block extra_style %}
+
+{% endblock %}
+
+{% block content %}
+<div class="page-hero">
+  <div class="container">
+    <h3 class="fw-bold mb-1">📺 Live Classes</h3>
+    <p class="mb-0 opacity-75" style="font-size:14px;">
+      {% if request.user.role == 'student' %}
+        Join live sessions from your enrolled courses
+      {% else %}
+        Manage and monitor your scheduled live classes
+      {% endif %}
+    </p>
+  </div>
+</div>
+
+<div class="container pb-5">
+
+  {% if classes_data %}
+
+    {# ── Separate live now vs upcoming vs ended ── #}
+    {% for item in classes_data %}
+      {% if item.class.is_live_now %}
+        {% if forloop.first or not forloop.previous.class.is_live_now %}
+        <div class="section-badge">🔴 Live Now</div>
+        {% endif %}
+      {% endif %}
+    {% endfor %}
+
+    {% for item in classes_data %}
+    {% with lc=item.class %}
+    <div class="cls-card">
+      <div class="cls-header">
+        <div class="cls-icon">
+          {% if lc.is_live_now %}🔴
+          {% elif lc.has_ended %}✅
+          {% else %}📅
+          {% endif %}
+        </div>
+        <div style="flex:1;">
+          <div style="font-weight:700; font-size:16px; color:#1a2c3e;">{{ lc.title }}</div>
+          <div style="font-size:13px; color:#64748b; margin-top:2px;">{{ lc.course.title }}</div>
+        </div>
+        {% if lc.is_live_now %}
+          <span class="status-live">LIVE NOW</span>
+        {% elif lc.has_ended %}
+          <span class="status-ended">✓ Ended</span>
+        {% else %}
+          <span class="status-soon">⏰ Upcoming</span>
+        {% endif %}
+      </div>
+
+      <div class="cls-body">
+        <div class="d-flex gap-4 flex-wrap">
+          <span class="meta-chip"><i class="fas fa-calendar"></i>{{ lc.scheduled_at|date:"d M Y" }}</span>
+          <span class="meta-chip"><i class="fas fa-clock"></i>{{ lc.scheduled_at|time:"H:i" }}</span>
+          <span class="meta-chip"><i class="fas fa-hourglass-half"></i>{{ lc.duration_mins }} min</span>
+          <span class="meta-chip"><i class="fas fa-chalkboard-teacher"></i>{{ lc.trainer.get_full_name }}</span>
+          {% if request.user.role != 'student' %}
+          <span class="att-pill"><i class="fas fa-users me-1"></i>{{ item.att_count }} attended</span>
+          {% endif %}
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+          {% if request.user.role != 'student' %}
+          <a href="{% url 'attendance_detail' lc.id %}" class="btn btn-sm btn-outline-primary rounded-pill" style="font-size:12px;">
+            <i class="fas fa-clipboard-list me-1"></i>Attendance
+          </a>
+          {% endif %}
+          {% if lc.has_ended %}
+            <span class="join-btn ended">Class Ended</span>
+          {% elif lc.is_live_now %}
+            <a href="{% url 'join_live_class' lc.id %}" class="join-btn">
+              🎥 Join Now
+            </a>
+          {% else %}
+            <a href="{% url 'join_live_class' lc.id %}" class="join-btn" style="background:linear-gradient(135deg,#1a5f7a,#2d6a4f);">
+              🔔 Enter Waiting Room
+            </a>
+          {% endif %}
+        </div>
+      </div>
+      {% if lc.description %}
+      <div style="padding:0 22px 14px; font-size:13px; color:#64748b;">{{ lc.description }}</div>
+      {% endif %}
+    </div>
+    {% endwith %}
+    {% endfor %}
+
+  {% else %}
+    <div class="empty-box">
+      <div style="font-size:56px; margin-bottom:16px;">📺</div>
+      <h5 class="fw-bold mb-2">No live classes yet</h5>
+      {% if request.user.role == 'student' %}
+        <p class="text-muted">Your trainers haven't scheduled any live classes yet. Check back soon!</p>
+        <a href="{% url 'my_courses' %}" class="btn btn-primary rounded-pill px-4 mt-2">My Courses</a>
+      {% else %}
+        <p class="text-muted">Schedule your first live class from the trainer dashboard.</p>
+        <a href="{% url 'trainer_dashboard' %}" class="btn btn-primary rounded-pill px-4 mt-2">Go to Dashboard</a>
+      {% endif %}
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}
