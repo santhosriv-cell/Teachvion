@@ -1,1 +1,1 @@
-web: gunicorn teachvion.wsgi --log-file -
+web: gunicorn teachvion.wsgi:application
