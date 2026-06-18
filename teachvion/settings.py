@@ -1,6 +1,9 @@
 import os
 from pathlib import Path
-from .env import load_env
+from dotenv import load_dotenv
+
+load_dotenv()
+    
 import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -77,7 +80,11 @@ AUTH_PASSWORD_VALIDATORS = [
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+if DEBUG:
+    STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
+else:
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
@@ -119,9 +126,13 @@ UPI_VPA = 'yourupi@upi'  # e.g. merchant@upi
 UPI_QR_URL = ''  # optional: public URL to a QR image for UPI payments
 UPI_ACCOUNT_NAME = 'Teachvion'
 
-# Optional: 8x8 JaaS settings (if using Option A above)
-JITSI_DOMAIN = 'jaas.8x8.vc'
-JITSI_APP_ID  = 'your-app-id-from-8x8.vc'
+# # Optional: 8x8 JaaS settings (if using Option A above)
+# JITSI_DOMAIN = 'jaas.8x8.vc'
+# JITSI_APP_ID  = 'your-app-id-from-8x8.vc'
+# Add Zoom SDK settings
+ZOOM_SDK_KEY = 'your_zoom_sdk_key_here'
+ZOOM_SDK_SECRET = 'your_zoom_sdk_secret_here'
+
 # CORS
 CORS_ALLOW_ALL_ORIGINS = True
 

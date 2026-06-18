@@ -26,7 +26,7 @@ def join_live_class_view(request, class_id):
         return redirect('trainer_dashboard')
 
     is_moderator = request.user.role in ('trainer', 'admin')
-    return render(request, 'liveclasses/live_class_room.html', {
+    return render(request, 'live_class_room.html', {
         'live_class':   live_class,
         'is_moderator': is_moderator,
         'user':         request.user,
@@ -125,7 +125,7 @@ def schedule_live_class_view(request, course_id):
         scheduled_at__gte=timezone.now()
     ).order_by('scheduled_at')
 
-    return render(request, 'liveclasses/schedule.html', {
+    return render(request, 'schedule.html', {
         'course': course, 'upcoming': upcoming
     })
 
@@ -152,7 +152,7 @@ def my_live_classes_view(request):
         att_count = Attendance.objects.filter(live_class=lc, is_present=True).count()
         classes_data.append({'class': lc, 'att_count': att_count})
 
-    return render(request, 'liveclasses/my_classes.html', {
+    return render(request, 'my_classes.html', {
         'classes_data': classes_data,
         'now':          now,
     })
@@ -178,7 +178,7 @@ def attendance_detail_view(request, class_id):
         course=live_class.course, payment_status='paid'
     ).count()
 
-    return render(request, 'liveclasses/attendance_detail.html', {
+    return render(request, 'attendance_detail.html', {
         'live_class':     live_class,
         'attendance':     attendance,
         'present_count':  present_count,

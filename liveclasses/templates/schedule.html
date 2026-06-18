@@ -2,13 +2,34 @@
 {% block title %}Schedule Live Class — {{ course.title }}{% endblock %}
 
 {% block extra_style %}
-
+<style>
+body { background: #f4f7fc; }
+.page-hero { background: linear-gradient(135deg,#2d6a4f,#1a5f7a); color:white; padding:28px 0; margin-bottom:28px; }
+.form-card { background:white; border-radius:20px; padding:28px; box-shadow:0 4px 20px rgba(0,0,0,.07); }
+.field-label { font-size:12px; font-weight:700; color:#374151; margin-bottom:5px; display:block; }
+.field-input { width:100%; padding:11px 14px; border:1.5px solid #e0e0e0; border-radius:10px; font-size:14px; outline:none; transition:.2s; margin-bottom:14px; font-family:inherit; background:white; }
+.field-input:focus { border-color:#2d6a4f; box-shadow:0 0 0 3px rgba(45,106,79,.1); }
+textarea.field-input { resize:vertical; min-height:80px; }
+.submit-btn { width:100%; padding:13px; background:linear-gradient(135deg,#2d6a4f,#1a5f7a); color:white; border:none; border-radius:12px; font-size:15px; font-weight:700; cursor:pointer; transition:.2s; }
+.submit-btn:hover { opacity:.9; transform:translateY(-2px); }
+.scheduled-card { background:white; border-radius:14px; padding:16px 18px; box-shadow:0 2px 10px rgba(0,0,0,.06); margin-bottom:10px; border-left:4px solid #2d6a4f; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+.scheduled-card.is-live    { border-color:#dc2626; }
+.scheduled-card.is-ended   { border-color:#94a3b8; opacity:.75; }
+.status-pill { border-radius:20px; padding:3px 10px; font-size:11px; font-weight:700; }
+.pill-live     { background:#dcfce7; color:#166534; }
+.pill-upcoming { background:#dbeafe; color:#1e40af; }
+.pill-ended    { background:#f1f5f9; color:#64748b; }
+.rec-pill      { background:#fef3c7; color:#92400e; border-radius:20px; padding:2px 8px; font-size:11px; font-weight:700; }
+.rec-pill.added { background:#dcfce7; color:#166534; }
+</style>
 {% endblock %}
 
 {% block content %}
 <div class="page-hero">
   <div class="container">
-    <a href="{% url 'trainer_dashboard' %}" style="color:rgba(255,255,255,.7); font-size:13px; text-decoration:none;">← Dashboard</a>
+    <a href="{% url 'trainer_dashboard' %}" style="color:rgba(255,255,255,.7);font-size:13px;text-decoration:none;">
+      ← Trainer Dashboard
+    </a>
     <h3 class="fw-bold mt-2 mb-1">📅 Schedule Live Class</h3>
     <p class="mb-0 opacity-75" style="font-size:14px;">{{ course.title }}</p>
   </div>
@@ -17,27 +38,39 @@
 <div class="container pb-5">
   <div class="row g-4">
 
-    <!-- Form -->
+    <!-- Schedule form -->
     <div class="col-lg-6">
       <div class="form-card">
-        <h5 class="fw-bold mb-4"><i class="fas fa-plus-circle me-2 text-success"></i>New Live Class</h5>
+        <h5 class="fw-bold mb-4">
+          <i class="fas fa-calendar-plus me-2 text-success"></i>New Live Class
+        </h5>
+
+        {% if messages %}
+          {% for m in messages %}
+          <div class="alert alert-{{ m.tags|default:'info' }} rounded-3 py-2 mb-3" style="font-size:13px;">
+            {{ m }}
+          </div>
+          {% endfor %}
+        {% endif %}
+
         <form method="post">
           {% csrf_token %}
+
           <label class="field-label">Class Title *</label>
-          <input class="field-input" type="text" name="title"
-                 placeholder="e.g. Python Functions Deep Dive" required>
+          <input class="field-input" type="text" name="title" required
+                 placeholder="e.g. Introduction to Django Views">
 
           <label class="field-label">Description (optional)</label>
           <textarea class="field-input" name="description"
-                    placeholder="What will be covered in this session? Prerequisites?"></textarea>
+                    placeholder="What topics will be covered? Any prerequisites?"></textarea>
 
           <label class="field-label">Date & Time *</label>
           <input class="field-input" type="datetime-local" name="scheduled_at" required>
           <div style="font-size:11px;color:#aaa;margin-top:-10px;margin-bottom:14px;">
-            Set the exact start date and time for your class
+            Set the exact date and time for your live session
           </div>
 
-          <label class="field-label">Duration (minutes)</label>
+          <label class="field-label">Duration</label>
           <select class="field-input" name="duration_mins">
             <option value="30">30 minutes</option>
             <option value="45">45 minutes</option>
@@ -46,53 +79,92 @@
             <option value="120">2 hours</option>
           </select>
 
-          {% if messages %}
-            {% for m in messages %}
-            <div class="alert alert-danger rounded-3 py-2" style="font-size:13px;">{{ m }}</div>
-            {% endfor %}
-          {% endif %}
-
-          <button type="submit" class="btn w-100 rounded-pill fw-bold"
-                  style="background:linear-gradient(135deg,#2d6a4f,#1a5f7a);color:white;padding:12px;font-size:15px;">
-            <i class="fas fa-calendar-plus me-2"></i>Schedule Class
+          <button type="submit" class="submit-btn">
+            <i class="fas fa-calendar-plus me-2"></i>Schedule Live Class
           </button>
         </form>
       </div>
     </div>
 
-    <!-- Upcoming classes for this course -->
+    <!-- Upcoming classes list -->
     <div class="col-lg-6">
-      <h5 class="fw-bold mb-3">📋 Scheduled Classes</h5>
+      <h5 class="fw-bold mb-3">
+        <i class="fas fa-list me-2" style="color:#2d6a4f;"></i>Scheduled Classes
+      </h5>
+
       {% if upcoming %}
         {% for lc in upcoming %}
-        <div class="scheduled-card {% if lc.is_live_now %}is-live{% elif lc.has_ended %}is-ended{% endif %}">
+        <div class="scheduled-card
+          {% if lc.is_live_now %}is-live
+          {% elif lc.has_ended %}is-ended
+          {% endif %}">
           <div style="flex:1;">
             <div style="font-weight:700;font-size:14px;color:#1a2c3e;">{{ lc.title }}</div>
             <div style="font-size:12px;color:#64748b;margin-top:3px;">
-              <i class="fas fa-calendar me-1"></i>{{ lc.scheduled_at|date:"d M Y H:i" }}
-              &nbsp;·&nbsp;{{ lc.duration_mins }} min
+              <i class="fas fa-calendar me-1"></i>{{ lc.scheduled_at|date:"d M Y" }}
+              &nbsp;·&nbsp;
+              <i class="fas fa-clock me-1"></i>{{ lc.scheduled_at|time:"H:i" }}
+              &nbsp;·&nbsp;
+              {{ lc.duration_mins }} min
+            </div>
+
+            <!-- Recording status badge -->
+            <div class="mt-2">
+              {% if lc.recording_status == 'added' %}
+                <span class="rec-pill added">✅ Recording added to course</span>
+              {% elif lc.recording_status == 'ready' %}
+                <span class="rec-pill">📹 Recording saved</span>
+              {% elif lc.recording_status == 'recording' %}
+                <span class="rec-pill">🔴 Currently recording</span>
+              {% endif %}
             </div>
           </div>
-          <div class="d-flex gap-2 align-items-center">
+
+          <div class="d-flex gap-2 align-items-center flex-wrap">
             {% if lc.is_live_now %}
-              <span style="background:#dcfce7;color:#166534;border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700;">🔴 LIVE</span>
+              <span class="status-pill pill-live">🔴 LIVE</span>
+              <a href="{% url 'join_live_class' lc.id %}"
+                 class="btn btn-sm btn-success rounded-pill" style="font-size:12px;">
+                Join Now
+              </a>
             {% elif lc.has_ended %}
-              <span style="background:#f1f5f9;color:#94a3b8;border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700;">Ended</span>
+              <span class="status-pill pill-ended">Ended</span>
             {% else %}
-              <span style="background:#dbeafe;color:#1e40af;border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700;">Upcoming</span>
+              <span class="status-pill pill-upcoming">Upcoming</span>
             {% endif %}
-            <a href="{% url 'attendance_detail' lc.id %}" class="btn btn-sm btn-outline-secondary rounded-pill" style="font-size:11px;padding:3px 10px;">
-              Attendance
+
+            <a href="{% url 'attendance_detail' lc.id %}"
+               class="btn btn-sm btn-outline-secondary rounded-pill" style="font-size:12px;">
+              <i class="fas fa-clipboard-list me-1"></i>Attendance
             </a>
           </div>
         </div>
         {% endfor %}
       {% else %}
-        <div style="background:white;border-radius:14px;padding:24px;text-align:center;box-shadow:0 2px 10px rgba(0,0,0,.06);">
-          <i class="fas fa-calendar-times fa-2x text-muted mb-2"></i>
-          <p class="text-muted mb-0" style="font-size:13px;">No classes scheduled yet for this course.</p>
+        <div style="background:white;border-radius:14px;padding:28px;text-align:center;box-shadow:0 2px 10px rgba(0,0,0,.06);">
+          <i class="fas fa-calendar-times fa-2x text-muted mb-3"></i>
+          <h6 class="fw-bold mb-2">No classes scheduled yet</h6>
+          <p class="text-muted mb-0" style="font-size:13px;">
+            Use the form to schedule your first live class.
+          </p>
         </div>
       {% endif %}
+
+      <!-- How recording works -->
+      <div style="background:#f0fdf4;border-radius:14px;padding:18px;margin-top:20px;border:1px solid #bbf7d0;">
+        <h6 class="fw-bold mb-2" style="color:#2d6a4f;">
+          <i class="fas fa-video me-1"></i>How Recording Works
+        </h6>
+        <ol style="font-size:13px;color:#555;margin:0;padding-left:18px;line-height:1.8;">
+          <li>During live class, click <strong>Record</strong> in Jitsi toolbar</li>
+          <li>Jitsi sends recording link to your email after class</li>
+          <li>Open Attendance page → paste link in <strong>Rec tab</strong></li>
+          <li>Lesson auto-created → students see it in course player</li>
+        </ol>
+        <div style="font-size:12px;color:#888;margin-top:8px;">
+          💡 Alternative: Record screen with OBS or Loom → upload the file
+        </div>
+      </div>
     </div>
 
   </div>

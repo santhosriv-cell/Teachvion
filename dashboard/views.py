@@ -336,7 +336,7 @@ def admin_course_edit_view(request, course_id):
     else:
         from courses.forms import CourseForm
         form = CourseForm(instance=course)
-    return render(request, 'dashboard/course_form.html', {
+    return render(request, 'course_form.html', {
         'form': form, 'course': course, 'action': 'Edit'
     })
 
