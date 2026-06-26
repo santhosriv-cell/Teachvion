@@ -1,17 +1,22 @@
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+import dj_database_url
 
 load_dotenv()
     
-import dj_database_url
+
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-change-this-in-production-teachvion-2025')
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
-
+ALLOWED_HOSTS = [
+    "localhost",
+    "127.0.0.1",
+    "santhosriv.pythonanywhere.com",
+    ".pythonanywhere.com",
+]
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -126,13 +131,9 @@ UPI_VPA = 'yourupi@upi'  # e.g. merchant@upi
 UPI_QR_URL = ''  # optional: public URL to a QR image for UPI payments
 UPI_ACCOUNT_NAME = 'Teachvion'
 
-# # Optional: 8x8 JaaS settings (if using Option A above)
-# JITSI_DOMAIN = 'jaas.8x8.vc'
-# JITSI_APP_ID  = 'your-app-id-from-8x8.vc'
-# Add Zoom SDK settings
-ZOOM_SDK_KEY = 'your_zoom_sdk_key_here'
-ZOOM_SDK_SECRET = 'your_zoom_sdk_secret_here'
-
+# Optional: 8x8 JaaS settings (if using Option A above)
+JITSI_DOMAIN = 'jaas.8x8.vc'
+JITSI_APP_ID  = 'your-app-id-from-8x8.vc'
 # CORS
 CORS_ALLOW_ALL_ORIGINS = True
 
@@ -147,4 +148,4 @@ USE_I18N = True
 USE_TZ = True
 
 # AI Tutor
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+GROQ_API_KEY=os.getenv("GROQ_API_KEY")

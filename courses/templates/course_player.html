@@ -4,482 +4,335 @@
 
 {% block extra_style %}
 <style>
-  /* ── LAYOUT ── */
+
+/* ── Reset body for player page ── */
+body {
+  background: #0f172a !important;
+  overflow-x: hidden;
+}
+
+/* ══════════════════════════════════════
+   PLAYER LAYOUT
+   FIX: use min-height instead of height
+   so footer can appear below naturally
+══════════════════════════════════════ */
 .player-layout {
   display: flex;
-  height: calc(100vh - 60px);
-  /* overflow: hidden; */
-  background: #0f172a;
+  flex-direction: row;          /* sidebar left, main right */
+  min-height: calc(100vh - 60px);
+  background: #e3e6ee;
+  /* REMOVED: height: calc(100vh - 60px) — this was trapping the footer */
+  /* REMOVED: overflow: hidden — this was hiding the footer */
 }
 
 /* ══════════════════════════
-   LEFT SIDEBAR — Lessons
+   LEFT SIDEBAR
 ══════════════════════════ */
 .sidebar {
   width: 270px;
   min-width: 270px;
-  background: #1e293b;
+  flex-shrink: 0;
+  background:lightgrey;
   color: white;
-  overflow-y: auto;
   display: flex;
   flex-direction: column;
   border-right: 1px solid #334155;
-  /* flex-shrink added */
+  /* FIX: use position sticky so sidebar scrolls with page
+     but stays visible — footer appears naturally below */
+  position: sticky;
+  top: 60px;                    /* height of your navbar */
+  height: calc(100vh - 60px);
+  overflow-y: auto;
+}
+
+.sidebar-header {
+  padding: 14px 16px;
+  border-bottom: 1px solid #334155;
   flex-shrink: 0;
 }
-.sidebar-header { 
-    padding: 14px 16px; 
-    border-bottom: 1px solid #334155; 
-    /* flex-shrink: 0;  */
-}
-.course-label  { font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: .6px; }
-.sidebar-header h5 { font-size: 13px; font-weight: 700; color: white; margin: 5px 0 0; line-height: 1.4; }
-.progress-wrap { padding: 10px 16px; background: #0f172a; 
-    /* flex-shrink: 0;         comment it */
-}
-.prog-bar-bg   { background: #334155; 
-    border-radius: 10px; height: 5px; overflow: hidden; }
-.prog-bar-fill { height: 5px; border-radius: 10px; background: linear-gradient(90deg,#5a67d8,#7b4bb7); transition: width .4s; }
-.lesson-list   { flex: 1; overflow-y: auto; }
+.course-label { font-size:11px; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:.6px; }
+.sidebar-header h5 { font-size:13px; font-weight:700; color:white; margin:5px 0 0; line-height:1.4; }
+
+.progress-wrap { padding:10px 16px; background:#0f172a; flex-shrink:0; }
+.prog-bar-bg   { background:#334155; border-radius:10px; height:5px; overflow:hidden; }
+.prog-bar-fill { height:5px; border-radius:10px; background:linear-gradient(90deg,#5a67d8,#7b4bb7); transition:width .4s; }
+
+.lesson-list { flex:1; overflow-y:auto; }
+
 .lesson-item {
-  display: flex; align-items: center; gap: 10px;
-  padding: 11px 14px; cursor: pointer;
-  border-left: 3px solid transparent; transition: .15s;
-  text-decoration: none; color: #cbd5e1;
+  display:flex; align-items:center; gap:10px;
+  padding:11px 14px; cursor:pointer;
+  border-left:3px solid transparent; transition:.15s;
+  text-decoration:none; color:#cbd5e1;
 }
-.lesson-item:hover   { background: #334155; color: white; }
-.lesson-item.active  { border-left-color: #5a67d8; background: #253352; color: white; }
-.lesson-item.done    { color: #4ade80; }
+.lesson-item:hover  { background:#334155; color:white; }
+.lesson-item.active { border-left-color:#5a67d8; background:#253352; color:white; }
+.lesson-item.done   { color:#4ade80; }
+
 .lesson-num {
-  width: 26px; height: 26px; border-radius: 50%;
-  background: #334155; display: flex; align-items: center;
-  justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0;
+  width:26px; height:26px; border-radius:50%;
+  background:#334155; display:flex; align-items:center;
+  justify-content:center; font-size:11px; font-weight:700; flex-shrink:0;
 }
-.lesson-item.active .lesson-num { background: #5a67d8; }
-.lesson-item.done   .lesson-num { background: #2d6a4f; }
-.lesson-title  { font-size: 12px; font-weight: 500; flex: 1; line-height: 1.4; }
-.lesson-chips  { display: flex; gap: 3px; margin-top: 3px; flex-wrap: wrap; }
-.lc { font-size: 10px; padding: 1px 5px; border-radius: 8px; font-weight: 600; }
-.lc-vid  { background: #166534; color: #bbf7d0; }
-.lc-url  { background: #1e3a8a; color: #bfdbfe; }
-.lc-pdf  { background: #7f1d1d; color: #fecaca; }
-.lc-note { background: #713f12; color: #fef08a; }
-.sidebar-exam-btn { margin: 10px 14px; flex-shrink: 0; }
+.lesson-item.active .lesson-num { background:#5a67d8; }
+.lesson-item.done   .lesson-num { background:#2d6a4f; }
+
+.lesson-title  { font-size:12px; font-weight:500; flex:1; line-height:1.4; }
+.lesson-chips  { display:flex; gap:3px; margin-top:3px; flex-wrap:wrap; }
+.lc      { font-size:10px; padding:1px 5px; border-radius:8px; font-weight:600; }
+.lc-vid  { background:#166534; color:#bbf7d0; }
+.lc-url  { background:#1e3a8a; color:#bfdbfe; }
+.lc-pdf  { background:#7f1d1d; color:#fecaca; }
+.lc-note { background:#713f12; color:#fef08a; }
+
+.sidebar-exam-btn { margin:10px 14px; flex-shrink:0; }
 .sidebar-exam-btn a {
-  display: block; background: linear-gradient(135deg,#5a67d8,#7b4bb7);
-  color: white; text-align: center; border-radius: 22px;
-  padding: 9px; font-weight: 700; font-size: 12px; text-decoration: none;
+  display:block; background:linear-gradient(135deg,#5a67d8,#7b4bb7);
+  color:white; text-align:center; border-radius:22px;
+  padding:9px; font-weight:700; font-size:12px; text-decoration:none;
 }
 
 /* ══════════════════════════
-   MAIN AREA — Video
+   MAIN AREA
+   FIX: flex:1 so it fills
+   remaining width naturally
 ══════════════════════════ */
 .main-area {
-  flex: 1; 
-  /* overflow-y: auto;  */
-  background: #0f172a;
-  display: flex; 
-  flex-direction: column; 
+  flex: 1;
   min-width: 0;
+  background: #cbdde9;
+  display: flex;
+  flex-direction: column;
+  /* REMOVED: overflow-y: auto — let the PAGE scroll, not this div */
 }
-.video-wrap { 
-    /* background: black; 
-    flex-shrink: 0;  */
-    width: 100%;
-    background: black;
-    overflow: hidden;
-    display: flex;              /* enable flexbox */
-    justify-content: center;    /* center horizontally */
-    align-items: center;        /* center vertically */
-}
-.video-wrap video  { 
-    /* width: 100%; 
-    max-height: 56vh; 
-    display: block;  */
-    width: 100%;
-    max-width: 100%;            /* prevent overflow */
-    height: auto;               /* let aspect-ratio control height */
-    aspect-ratio: 16 / 9;       /* maintain 16:9 ratio */
-    object-fit: contain;        /* keep full video visible */
-    background: black;
-    display: block;
-}
-.video-wrap iframe { 
-    width: 100%; 
-    /* height: 56vh;  */
-    aspect-ratio: 16 / 9;
-    border: none; 
-    display: block; 
-}
-.no-video {
-  height: 200px; 
-  display: flex; 
-  /* flex-direction: column; */
-  align-items: center; 
-  justify-content: center; 
-  color: #64748b;
-}
-.content-tabs {
-  background: #1e293b; padding: 0 18px;
-  display: flex; gap: 2px; border-bottom: 1px solid #334155; 
-  /* flex-shrink: 0; */
-}
-.content-tab {
-  padding: 11px 16px; font-size: 12px; font-weight: 600; color: #94a3b8;
-  cursor: pointer; border-bottom: 2px solid transparent;
-  background: none; border-top: none; border: none; 
-  /* transition: .15s; */
-}
-.content-tab:hover  { color: #e2e8f0; }
-.content-tab.active { color: #5a67d8; border-bottom-color: #5a67d8; }
-.tab-panel       { display: none; padding: 20px; color: #cbd5e1; }
-.tab-panel.active { display: block; }
-.tab-panel h4    { color: white; font-weight: 700; margin-bottom: 6px; font-size: 16px; }
-.tab-panel p     { color: #94a3b8; font-size: 13px; }
-.notes-content   { background: #1e293b; border-radius: 10px; padding: 16px; font-size: 13px; line-height: 1.8; white-space: pre-wrap; color: #e2e8f0; }
-.exam-unlock-box { background: linear-gradient(135deg,#5a67d8,#7b4bb7); border-radius: 14px; padding: 24px; text-align: center; color: white; margin: 12px 0; }
-.exam-unlock-box h5 { font-weight: 800; font-size: 16px; margin: 8px 0 4px; }
-.exam-unlock-box a  { display: inline-block; background: white; color: #5a67d8; border-radius: 22px; padding: 8px 24px; font-weight: 700; text-decoration: none; margin-top: 10px; }
-.inline-progress      { background: #334155; border-radius: 10px; height: 4px; overflow: hidden; }
-.inline-progress-fill { height: 4px; border-radius: 10px; background: #5a67d8; transition: width .3s; }
 
-
-/* ====================================================
-   VIDEO PLAYER - BASE STYLES
-   ==================================================== */
+/* ── Video ── */
 .video-wrap {
   width: 100%;
   background: black;
-  overflow: hidden;
-  flex-shrink: 0;             /* prevents collapsing */
+  flex-shrink: 0;
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 240px;          /* ensures visible height */
 }
-
-.video-wrap video,
-.video-wrap iframe {
+.video-wrap video {
   width: 100%;
-  display: block;
+  max-width: 100%;
   aspect-ratio: 16 / 9;
   object-fit: contain;
   background: black;
+  display: block;
 }
-
-
-/* Fallback when no video is present */
+.video-wrap iframe {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: none;
+  display: block;
+}
 .no-video {
   height: 240px;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
+  justify-content: center;
   color: #64748b;
 }
 
-/* ====================================================
-   RESPONSIVE TWEAKS
-   ==================================================== */
-
-@media (min-width: 992px) {
-  .player-layout {
-    flex-direction: column;
-  }
-
-  .sidebar {
-    width: 100%;
-    min-width: 100%;
-    max-height: 300px;
-  }
+/* ── Tabs ── */
+.content-tabs {
+  background: #1e293b;
+  padding: 0 18px;
+  display: flex;
+  gap: 2px;
+  border-bottom: 1px solid #334155;
+  flex-shrink: 0;
 }
+.content-tab {
+  padding: 11px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #94a3b8;
+  cursor: pointer;
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: none;
+  transition: .15s;
+}
+.content-tab:hover  { color:#e2e8f0; }
+.content-tab.active { color:#5a67d8; border-bottom-color:#5a67d8; }
 
+.tab-panel        { display:none; padding:20px; color:#cbd5e1; }
+.tab-panel.active { display:block; }
+.tab-panel h4     { color:white; font-weight:700; margin-bottom:6px; font-size:16px; }
+.tab-panel p      { color:#94a3b8; font-size:13px; }
 
+.notes-content { background:#1e293b; border-radius:10px; padding:16px; font-size:13px; line-height:1.8; white-space:pre-wrap; color:#e2e8f0; }
+
+.exam-unlock-box { background:linear-gradient(135deg,#5a67d8,#7b4bb7); border-radius:14px; padding:24px; text-align:center; color:white; margin:12px 0; }
+.exam-unlock-box h5 { font-weight:800; font-size:16px; margin:8px 0 4px; }
+.exam-unlock-box a  { display:inline-block; background:white; color:#5a67d8; border-radius:22px; padding:8px 24px; font-weight:700; text-decoration:none; margin-top:10px; }
+
+.inline-progress      { background:#334155; border-radius:10px; height:4px; overflow:hidden; }
+.inline-progress-fill { height:4px; border-radius:10px; background:#5a67d8; transition:width .3s; }
 
 /* ══════════════════════════
-   RIGHT SIDEBAR — AI Chat
-══════════════════════════ */
-/* ═══════════════════════════
    FLOATING AI BUTTON
-═══════════════════════════ */
-
+══════════════════════════ */
 .ai-float-btn {
   position: fixed;
   bottom: 24px;
   right: 24px;
-  width: 64px;
-  height: 64px;
+  width: 60px;
+  height: 60px;
   border: none;
   border-radius: 50%;
   cursor: pointer;
   z-index: 9999;
-
-  font-size: 28px;
+  font-size: 26px;
   color: white;
-
-  background: linear-gradient(
-    135deg,
-    #5a67d8,
-    #7b4bb7
-  );
-
-  box-shadow:
-    0 10px 30px rgba(0,0,0,.25);
-
-  transition: .25s;
+  background: linear-gradient(135deg,#5a67d8,#7b4bb7);
+  box-shadow: 0 8px 24px rgba(90,103,216,.45);
+  transition: .2s;
 }
+.ai-float-btn:hover { transform:scale(1.08); }
 
-.ai-float-btn:hover {
-  transform: scale(1.08);
-}
-
-
-/* ═══════════════════════════
+/* ══════════════════════════
    AI CHAT POPUP
-═══════════════════════════ */
-
+══════════════════════════ */
 .ai-popup {
   position: fixed;
-  bottom: 100px;
+  bottom: 96px;
   right: 24px;
-
-  width: 380px;
-  height: 600px;
-
-  background: #ffffff;
-  border-radius: 22px;
-
-  box-shadow:
-    0 20px 60px rgba(0,0,0,.18);
-
+  width: 360px;
+  height: 560px;
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.18);
   display: flex;
   flex-direction: column;
-
   overflow: hidden;
-
   z-index: 9999;
-
   opacity: 0;
   visibility: hidden;
   transform: translateY(20px);
-
   transition: .25s ease;
 }
-
 .ai-popup.show {
   opacity: 1;
   visibility: visible;
   transform: translateY(0);
 }
-
-
-/* Header */
-
 .ai-popup-header {
-  height: 64px;
+  height: 58px;
   background: white;
   border-bottom: 1px solid #e2e8f0;
-
   display: flex;
   align-items: center;
   justify-content: space-between;
-
-  padding: 0 18px;
+  padding: 0 16px;
+  flex-shrink: 0;
 }
-
-.ai-popup-title {
-  font-size: 16px;
-  font-weight: 700;
-  color: #0f172a;
-}
-
+.ai-popup-title { font-size:15px; font-weight:700; color:#0f172a; }
 .ai-close-btn {
   border: none;
   background: #f1f5f9;
-
-  width: 36px;
-  height: 36px;
-
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
-
   cursor: pointer;
-  font-size: 16px;
-}
-
-
-/* Messages */
-
-.ai-messages {
-  flex: 1;
-  overflow-y: auto;
-
-  padding: 16px;
-
-  background: #f8fafc;
-
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-
-/* Bot */
-
-.ai-msg-bot {
-  display: flex;
-  gap: 10px;
-}
-
-.ai-avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-
-  background: linear-gradient(
-    135deg,
-    #5a67d8,
-    #7b4bb7
-  );
-
+  font-size: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
-
-  color: white;
-  flex-shrink: 0;
 }
-
-.ai-bubble-bot {
-  background: white;
-  border: 1px solid #e2e8f0;
-
-  color: #1e293b;
-
-  padding: 12px 14px;
-  border-radius: 18px;
-
-  font-size: 14px;
-  line-height: 1.7;
-
-  max-width: 80%;
-}
-
-
-/* User */
-
-.ai-msg-user {
-  display: flex;
-  justify-content: flex-end;
-}
-
-.ai-bubble-user {
-  background: #5a67d8;
-  color: white;
-
-  padding: 12px 14px;
-  border-radius: 18px;
-
-  max-width: 80%;
-  font-size: 14px;
-}
-
-
-/* Input */
-
-.ai-input-wrap {
-  padding: 14px;
-  background: white;
-  border-top: 1px solid #e2e8f0;
-}
-
-.ai-input-row {
-  display: flex;
-  gap: 10px;
-}
-
-.ai-input {
+.ai-messages {
   flex: 1;
-
-  border: 1px solid #cbd5e1;
+  overflow-y: auto;
+  padding: 14px;
   background: #f8fafc;
-
-  border-radius: 16px;
-
-  padding: 12px 14px;
-
-  resize: none;
-  outline: none;
-
-  color: #0f172a;
-  font-size: 14px;
-
-  max-height: 100px;
-}
-
-.ai-send {
-  width: 46px;
-  height: 46px;
-
-  border: none;
-  border-radius: 50%;
-
-  background: linear-gradient(
-    135deg,
-    #5a67d8,
-    #7b4bb7
-  );
-
-  color: white;
-  cursor: pointer;
-}
-
-
-/* Quick chips */
-
-.quick-chips {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  flex-direction: column;
+  gap: 12px;
 }
-
+.ai-msg-bot { display:flex; gap:10px; align-items:flex-start; }
+.ai-avatar {
+  width:34px; height:34px; border-radius:50%;
+  background:linear-gradient(135deg,#5a67d8,#7b4bb7);
+  display:flex; align-items:center; justify-content:center;
+  color:white; flex-shrink:0; font-size:16px;
+}
+.ai-bubble-bot {
+  background:white; border:1px solid #e2e8f0; color:#1e293b;
+  padding:10px 13px; border-radius:4px 16px 16px 16px;
+  font-size:13px; line-height:1.7; max-width:82%;
+}
+.ai-bubble-bot code {
+  background:#f0f4f8; border-radius:4px; padding:1px 5px;
+  font-size:12px; color:#3730a3; font-family:monospace;
+}
+.ai-bubble-bot pre {
+  background:#1e293b; border-radius:8px; padding:10px;
+  overflow-x:auto; margin:6px 0 0; font-size:11px;
+}
+.ai-bubble-bot pre code { background:none; color:#a5f3fc; padding:0; }
+.ai-msg-user  { display:flex; justify-content:flex-end; }
+.ai-bubble-user {
+  background:#5a67d8; color:white;
+  padding:10px 13px; border-radius:16px 4px 16px 16px;
+  max-width:82%; font-size:13px; line-height:1.6;
+}
+.typing-indicator { display:flex; gap:4px; align-items:center; padding:4px 0; }
+.typing-dot {
+  width:7px; height:7px; border-radius:50%; background:#94a3b8;
+  animation:tdot .8s ease-in-out infinite;
+}
+.typing-dot:nth-child(2) { animation-delay:.15s; }
+.typing-dot:nth-child(3) { animation-delay:.3s; }
+@keyframes tdot { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-5px)} }
+.ai-input-wrap {
+  padding:12px;
+  background:white;
+  border-top:1px solid #e2e8f0;
+  flex-shrink:0;
+}
+.ai-input-row { display:flex; gap:8px; align-items:flex-end; }
+.ai-input {
+  flex:1; border:1.5px solid #cbd5e1; background:#f8fafc;
+  border-radius:14px; padding:10px 13px; resize:none;
+  outline:none; color:#0f172a; font-size:13px; max-height:80px;
+  font-family:inherit; line-height:1.5;
+}
+.ai-input:focus { border-color:#5a67d8; }
+.ai-send {
+  width:42px; height:42px; border:none; border-radius:50%;
+  background:linear-gradient(135deg,#5a67d8,#7b4bb7);
+  color:white; cursor:pointer; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+}
+.ai-send:disabled { opacity:.5; cursor:not-allowed; }
+.quick-chips { display:flex; flex-wrap:wrap; gap:6px; }
 .qchip {
-  background: white;
-  border: 1px solid #dbeafe;
-
-  color: #475569;
-
-  padding: 7px 12px;
-  border-radius: 20px;
-
-  font-size: 12px;
-  cursor: pointer;
+  background:white; border:1px solid #dbeafe; color:#475569;
+  padding:5px 10px; border-radius:16px; font-size:11px; cursor:pointer;
 }
+.qchip:hover { border-color:#5a67d8; color:#5a67d8; }
 
-.qchip:hover {
-  border-color: #5a67d8;
-}
-
-
-/* Mobile */
-
-@media (max-width: 640px) {
-
-  .ai-popup {
-    right: 12px;
-    left: 12px;
-    width: auto;
-    height: 70vh;
-    bottom: 90px;
+/* ── Responsive ── */
+@media (max-width:768px) {
+  .player-layout { flex-direction:column; }
+  .sidebar {
+    position:relative; top:auto;
+    width:100%; min-width:100%; height:auto;
+    max-height:260px;
   }
-
+  .ai-popup { right:10px; left:10px; width:auto; height:65vh; }
 }
 </style>
-
 {% endblock %}
 
 
 {% block content %}
 
-{# ── Config in data attributes — zero Django tags inside JS ── #}
 <div id="playerConfig"
      data-lesson-id="{% if current_lesson %}{{ current_lesson.id }}{% else %}0{% endif %}"
      data-progress-url="{% if current_lesson %}/lesson/{{ current_lesson.id }}/progress/{% endif %}"
@@ -493,9 +346,7 @@
 
 <div class="player-layout">
 
-  {# ═══════════════════════
-     LEFT SIDEBAR
-  ═══════════════════════ #}
+  {# ── LEFT SIDEBAR ── #}
   <div class="sidebar">
     <div class="sidebar-header">
       <div class="course-label">Now Playing</div>
@@ -515,7 +366,9 @@
     <div class="lesson-list">
       {% for lesson in lessons %}
       <a href="/course/{{ course.id }}/player/?lesson={{ lesson.id }}"
-         class="lesson-item {% if current_lesson and lesson.id == current_lesson.id %}active{% endif %}{% with vp=progress_map|get_item:lesson.id %}{% if vp and vp.completed %} done{% endif %}{% endwith %}">
+         class="lesson-item
+           {% if current_lesson and lesson.id == current_lesson.id %}active{% endif %}
+           {% with vp=progress_map|get_item:lesson.id %}{% if vp and vp.completed %} done{% endif %}{% endwith %}">
         <div class="lesson-num">
           {% with vp=progress_map|get_item:lesson.id %}
             {% if vp and vp.completed %}✓{% else %}{{ forloop.counter }}{% endif %}
@@ -544,13 +397,10 @@
     {% endif %}
   </div>
 
-  {# ═══════════════════════
-     MAIN AREA
-  ═══════════════════════ #}
+  {# ── MAIN AREA ── #}
   <div class="main-area">
     {% if current_lesson %}
 
-      {# Video #}
       <div class="video-wrap">
         {% if current_lesson.video_file %}
           <video controls id="lessonVideo" preload="metadata">
@@ -570,7 +420,6 @@
         {% endif %}
       </div>
 
-      {# Content tabs #}
       <div class="content-tabs">
         <button class="content-tab active" onclick="switchTab(this,'tab-overview')">
           <i class="fas fa-info-circle me-1"></i>Overview
@@ -587,11 +436,10 @@
         {% endif %}
       </div>
 
-      {# Overview tab #}
       <div class="tab-panel active" id="tab-overview">
         <h4>{{ current_lesson.title }}</h4>
         <p>
-          {% if current_lesson.duration_mins %}<i class="fas fa-clock me-1"></i>{{ current_lesson.duration_mins }} min &nbsp;·&nbsp; {% endif %}
+          {% if current_lesson.duration_mins %}<i class="fas fa-clock me-1"></i>{{ current_lesson.duration_mins }} min &nbsp;·&nbsp;{% endif %}
           Lesson {% for l in lessons %}{% if l.id == current_lesson.id %}{{ forloop.counter }}{% endif %}{% endfor %} of {{ lessons|length }}
         </p>
 
@@ -633,7 +481,6 @@
         </div>
       </div>
 
-      {# PDF tab #}
       {% if current_lesson.pdf_file %}
       <div class="tab-panel" id="tab-pdf">
         <div class="d-flex justify-content-between align-items-center mb-3">
@@ -647,7 +494,6 @@
       </div>
       {% endif %}
 
-      {# Notes tab #}
       {% if current_lesson.notes %}
       <div class="tab-panel" id="tab-notes">
         <h6 style="color:white;margin-bottom:12px;font-weight:700;"><i class="fas fa-sticky-note me-2 text-warning"></i>Lesson Notes</h6>
@@ -663,98 +509,49 @@
         <a href="{% url 'index' %}" class="btn btn-outline-light rounded-pill mt-2 px-4">Browse Courses</a>
       </div>
     {% endif %}
-  </div>
+  </div>{# end main-area #}
 
-  {# ═══════════════════════
-     RIGHT SIDEBAR — AI
-  ═══════════════════════ #}
- <!-- ═══════════════════════════════
-     FLOATING AI BUTTON + POPUP
-═══════════════════════════════ -->
+</div>{# end player-layout #}
 
-<!-- Floating Bubble Button -->
-<button class="ai-float-btn" onclick="toggleAIChat()">
-  🤖
-</button>
+{# ── FLOATING AI BUTTON ── #}
+<button class="ai-float-btn" onclick="toggleAIChat()" title="AI Tutor">🤖</button>
 
-<!-- AI Popup -->
+{# ── AI POPUP ── #}
 <div class="ai-popup" id="aiPopup">
-
   <div class="ai-popup-header">
-    <div class="ai-popup-title">
-      🤖 AI Tutor
-    </div>
-
-    <button class="ai-close-btn" onclick="toggleAIChat()">
-      ✕
-    </button>
+    <div class="ai-popup-title">🤖 AI Tutor <span style="background:linear-gradient(135deg,#5a67d8,#7b4bb7);color:white;font-size:10px;padding:2px 8px;border-radius:10px;font-weight:700;">Claude</span></div>
+    <button class="ai-close-btn" onclick="toggleAIChat()">✕</button>
   </div>
 
-  <!-- Messages -->
   <div class="ai-messages" id="aiMessages">
-
     <div class="ai-msg-bot">
       <div class="ai-avatar">🤖</div>
-
       <div class="ai-bubble-bot">
-        Hi! I'm your AI tutor for
-        <strong>{{ current_lesson.title|default:course.title }}</strong>.
-        Ask me anything about this lesson 💡
+        Hi! I'm your AI tutor for <strong>{{ current_lesson.title|default:course.title }}</strong>. Ask me anything about this lesson 💡
       </div>
     </div>
-
-    <!-- Quick chips -->
     <div class="quick-chips" id="quickChips">
-      <div class="qchip" onclick="askQuick(this)">
-        Explain this concept
-      </div>
-
-      <div class="qchip" onclick="askQuick(this)">
-        Give me an example
-      </div>
-
-      <div class="qchip" onclick="askQuick(this)">
-        Show code example
-      </div>
-
-      <div class="qchip" onclick="askQuick(this)">
-        Why is this important?
-      </div>
-
-      <div class="qchip" onclick="askQuick(this)">
-        Summarise this lesson
-      </div>
+      <div class="qchip" onclick="askQuick(this)">Explain this concept</div>
+      <div class="qchip" onclick="askQuick(this)">Give me an example</div>
+      <div class="qchip" onclick="askQuick(this)">Show code example</div>
+      <div class="qchip" onclick="askQuick(this)">Why is this important?</div>
+      <div class="qchip" onclick="askQuick(this)">Summarise this lesson</div>
     </div>
-
   </div>
 
-  <!-- Input -->
   <div class="ai-input-wrap">
     <div class="ai-input-row">
-
-      <textarea
-        class="ai-input"
-        id="aiInput"
-        rows="1"
-        placeholder="Ask anything..."
-        onkeypress="handleKey(event)"
-        oninput="autoResize(this)">
-      </textarea>
-
-      <button
-        class="ai-send"
-        id="aiSend"
-        onclick="sendAI()">
-
+      <textarea class="ai-input" id="aiInput" rows="1"
+                placeholder="Ask anything about this lesson..."
+                onkeypress="handleKey(event)"
+                oninput="autoResize(this)"></textarea>
+      <button class="ai-send" id="aiSend" onclick="sendAI()">
         <i class="fas fa-paper-plane"></i>
       </button>
-
     </div>
   </div>
-
 </div>
 
-</div>{# end .player-layout #}
 {% endblock %}
 
 
@@ -762,37 +559,30 @@
 <script>
 (function () {
 
-  /* ── Config ── */
   var cfg          = document.getElementById('playerConfig').dataset;
   var LESSON_ID    = cfg.lessonId;
   var PROGRESS_URL = cfg.progressUrl;
   var AI_URL       = cfg.aiUrl;
   var CSRF         = cfg.csrf;
-  var LESSON_TITLE = cfg.lessonTitle;
+  var chatHistory  = [];
+  var lastSentPct  = 0;
 
-  /* ── Chat history (for multi-turn conversation) ── */
-  var chatHistory = [];
-
-  /* ════════════════════════════════════
-     VIDEO PROGRESS TRACKING
-  ════════════════════════════════════ */
-  var lastSentPct = 0;
-
+  /* ── Video progress ── */
   function sendProgress(percent) {
     if (!PROGRESS_URL || !LESSON_ID || LESSON_ID === '0') return;
     fetch(PROGRESS_URL, {
       method:  'POST',
-      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
-      body:    JSON.stringify({ percent: percent }),
+      headers: { 'Content-Type':'application/json','X-CSRFToken':CSRF },
+      body:    JSON.stringify({ percent:percent }),
     })
-    .then(function(r) { return r.json(); })
-    .then(function(data) {
+    .then(function(r){ return r.json(); })
+    .then(function(data){
       var bar = document.getElementById('videoProgressInline');
       var pct = document.getElementById('videoProgressPct');
       if (bar) bar.style.width = percent + '%';
       if (pct) pct.textContent = percent + '%';
       if (data.completed) {
-        document.querySelectorAll('.lesson-item').forEach(function(link) {
+        document.querySelectorAll('.lesson-item').forEach(function(link){
           if (link.href && link.href.includes('lesson=' + LESSON_ID)) {
             link.classList.add('done');
             var num = link.querySelector('.lesson-num');
@@ -801,194 +591,116 @@
         });
       }
     })
-    .catch(function(e) { console.warn('Progress failed:', e); });
+    .catch(function(e){ console.warn('Progress failed:',e); });
   }
 
   var video = document.getElementById('lessonVideo');
   if (video) {
-    video.addEventListener('timeupdate', function() {
+    video.addEventListener('timeupdate', function(){
       if (!this.duration) return;
       var pct = Math.floor((this.currentTime / this.duration) * 100);
       if (pct >= lastSentPct + 10 || (pct === 100 && lastSentPct < 100)) {
-        lastSentPct = pct;
-        sendProgress(pct);
+        lastSentPct = pct; sendProgress(pct);
       }
     });
-    video.addEventListener('ended', function() {
-      lastSentPct = 100;
-      sendProgress(100);
-    });
+    video.addEventListener('ended', function(){ lastSentPct=100; sendProgress(100); });
   }
 
   var iframe = document.getElementById('lessonIframe');
   if (iframe && PROGRESS_URL) {
-    /* YouTube iframes — mark 100% after 8s (can't track real time) */
-    setTimeout(function() { sendProgress(100); }, 8000);
+    setTimeout(function(){ sendProgress(100); }, 8000);
   }
 
-  /* ════════════════════════════════════
-     CONTENT TABS
-  ════════════════════════════════════ */
+  /* ── Tabs ── */
   window.switchTab = function(btn, tabId) {
-    document.querySelectorAll('.content-tab').forEach(function(b) { b.classList.remove('active'); });
-    document.querySelectorAll('.tab-panel').forEach(function(p)   { p.classList.remove('active'); });
+    document.querySelectorAll('.content-tab').forEach(function(b){ b.classList.remove('active'); });
+    document.querySelectorAll('.tab-panel').forEach(function(p){ p.classList.remove('active'); });
     btn.classList.add('active');
     document.getElementById(tabId).classList.add('active');
   };
 
-  /* ════════════════════════════════════
-     AI TUTOR
-  ════════════════════════════════════ */
-  var aiCollapsed = false;
-
-/*
-    window.toggleAI = function() {
-    aiCollapsed = !aiCollapsed;
-    var sidebar  = document.getElementById('aiSidebar');
-    var expandBtn = document.getElementById('aiExpandBtn');
-    sidebar.classList.toggle('collapsed', aiCollapsed);
-    expandBtn.style.display = aiCollapsed ? 'block' : 'none';
+  /* ── AI popup toggle ── */
+  window.toggleAIChat = function() {
+    document.getElementById('aiPopup').classList.toggle('show');
   };
-  */
-  window.toggleAIChat = function () {
-	 document
-    .getElementById('aiPopup')
-    .classList.toggle('show');
-	};
 
-  /* Auto-resize textarea */
   window.autoResize = function(el) {
     el.style.height = 'auto';
     el.style.height = Math.min(el.scrollHeight, 80) + 'px';
   };
 
-  /* Send on Enter (Shift+Enter = new line) */
   window.handleKey = function(e) {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      sendAI();
-    }
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendAI(); }
   };
 
-  /* Quick question chips */
   window.askQuick = function(el) {
-    var text = el.textContent;
-    document.getElementById('aiInput').value = text;
-    /* Remove chips after first use */
+    document.getElementById('aiInput').value = el.textContent.trim();
     var chips = document.getElementById('quickChips');
     if (chips) chips.style.display = 'none';
     sendAI();
   };
 
-  /* ── Send message to Claude ── */
-  /* ════════════════════════════════════════════════════════════════
-   REPLACE the entire sendAI() function in your course_player.html
-   Find:   window.sendAI = function () {
-   Replace until the closing };
-   ════════════════════════════════════════════════════════════════ */
-
-  window.sendAI = function () {
-    var input = document.getElementById('aiInput');
-    var msg   = (input.value || '').trim();
+  /* ── Send AI message ── */
+  window.sendAI = function() {
+    var input   = document.getElementById('aiInput');
+    var msg     = (input.value || '').trim();
+    var sendBtn = document.getElementById('aiSend');
     if (!msg) return;
+    if (!AI_URL) { appendBot('⚠️ No lesson selected.'); return; }
 
-    if (!AI_URL || AI_URL === '') {
-      appendBotMessage('⚠️ No lesson selected. Please click on a lesson first.');
-      return;
-    }
-
-    /* Show user message */
-    appendUserMessage(msg);
-    input.value        = '';
-    input.style.height = 'auto';
-
-    /* Disable button + show typing dots */
-    var sendBtn  = document.getElementById('aiSend');
+    appendUser(msg);
+    input.value = ''; input.style.height = 'auto';
     sendBtn.disabled = true;
-    var typingId = showTyping();
+    var tid = showTyping();
 
-    /*
-     * KEY FIX: send chatHistory WITHOUT the current message.
-     * The server appends the user message itself.
-     * We only add to chatHistory AFTER a successful reply,
-     * preventing duplicate consecutive user messages → HTTP 400.
-     */
     fetch(AI_URL, {
-      method:  'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken':  CSRF,
-      },
-      body: JSON.stringify({
-        message: msg,
-        history: chatHistory.slice(),   /* send as-is, server cleans it */
-      }),
+      method: 'POST',
+      headers: { 'Content-Type':'application/json','X-CSRFToken':CSRF },
+      body: JSON.stringify({ message:msg, history:chatHistory.slice() }),
     })
-    .then(function (r) {
-      return r.json();
-    })
-    .then(function (data) {
-      removeTyping(typingId);
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      removeTyping(tid);
       sendBtn.disabled = false;
-
-      if (data.error) {
-        appendBotMessage('⚠️ ' + data.error);
-        return;   /* do NOT add to history on error */
-      }
-
-      /* Render reply with markdown formatting */
-      appendBotMessage(formatMarkdown(data.reply), true);
-
-      /* Add BOTH messages to history only after success */
-      chatHistory.push({ role: 'user',      content: msg          });
-      chatHistory.push({ role: 'assistant', content: data.reply   });
-
-      /* Keep history to last 20 messages max */
-      if (chatHistory.length > 20) {
-        chatHistory = chatHistory.slice(chatHistory.length - 20);
-      }
+      if (data.error) { appendBot('⚠️ ' + data.error); return; }
+      appendBot(fmtMd(data.reply), true);
+      chatHistory.push({ role:'user', content:msg });
+      chatHistory.push({ role:'assistant', content:data.reply });
+      if (chatHistory.length > 20) chatHistory = chatHistory.slice(-20);
     })
-    .catch(function (err) {
-      removeTyping(typingId);
+    .catch(function(err){
+      removeTyping(tid);
       sendBtn.disabled = false;
-      appendBotMessage('⚠️ Connection error. Please check your internet.');
-      console.error('AI fetch error:', err);
+      appendBot('⚠️ Connection error. Please try again.');
+      console.error('AI error:', err);
     });
   };
-  /* ── DOM helpers ── */
-  function appendUserMessage(text) {
+
+  function appendUser(text) {
     var msgs = document.getElementById('aiMessages');
-    var div  = document.createElement('div');
-    div.className = 'ai-msg-user';
-    div.innerHTML = '<div class="ai-bubble-user">' + escH(text) + '</div>';
-    msgs.appendChild(div);
+    var d = document.createElement('div');
+    d.className = 'ai-msg-user';
+    d.innerHTML = '<div class="ai-bubble-user">' + escH(text) + '</div>';
+    msgs.appendChild(d);
     msgs.scrollTop = msgs.scrollHeight;
   }
 
-  function appendBotMessage(html, isHtml) {
+  function appendBot(html, isHtml) {
     var msgs = document.getElementById('aiMessages');
-    var wrap = document.createElement('div');
-    wrap.className = 'ai-msg-bot';
-    wrap.innerHTML =
-      '<div class="ai-avatar">🤖</div>' +
-      '<div class="ai-bubble-bot">' + (isHtml ? html : escH(html)) + '</div>';
-    msgs.appendChild(wrap);
+    var d = document.createElement('div');
+    d.className = 'ai-msg-bot';
+    d.innerHTML = '<div class="ai-avatar">🤖</div><div class="ai-bubble-bot">' + (isHtml ? html : escH(html)) + '</div>';
+    msgs.appendChild(d);
     msgs.scrollTop = msgs.scrollHeight;
   }
 
   function showTyping() {
     var msgs = document.getElementById('aiMessages');
-    var id   = 'typing-' + Date.now();
-    var wrap = document.createElement('div');
-    wrap.className = 'ai-msg-bot';
-    wrap.id = id;
-    wrap.innerHTML =
-      '<div class="ai-avatar">🤖</div>' +
-      '<div class="ai-bubble-bot">' +
-      '<div class="typing-indicator">' +
-      '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>' +
-      '</div></div>';
-    msgs.appendChild(wrap);
+    var id = 'typing-' + Date.now();
+    var d  = document.createElement('div');
+    d.className = 'ai-msg-bot'; d.id = id;
+    d.innerHTML = '<div class="ai-avatar">🤖</div><div class="ai-bubble-bot"><div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div></div>';
+    msgs.appendChild(d);
     msgs.scrollTop = msgs.scrollHeight;
     return id;
   }
@@ -998,28 +710,17 @@
     if (el) el.remove();
   }
 
-  /* ── Simple markdown → HTML (bold, code, newlines) ── */
-  function formatMarkdown(text) {
+  function fmtMd(text) {
     return text
-      /* code blocks ```lang ... ``` */
-      .replace(/```(\w*)\n?([\s\S]*?)```/g, function(_, lang, code) {
-        return '<pre><code>' + escH(code.trim()) + '</code></pre>';
-      })
-      /* inline `code` */
+      .replace(/```(\w*)\n?([\s\S]*?)```/g, function(_,l,c){ return '<pre><code>' + escH(c.trim()) + '</code></pre>'; })
       .replace(/`([^`]+)`/g, '<code>$1</code>')
-      /* **bold** */
       .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-      /* *italic* */
       .replace(/\*([^*]+)\*/g, '<em>$1</em>')
-      /* newlines */
       .replace(/\n/g, '<br>');
   }
 
   function escH(s) {
-    return String(s)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;');
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
 
 })();

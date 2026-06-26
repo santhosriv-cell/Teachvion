@@ -319,31 +319,14 @@
       {% endfor %}
     </div>
  
-    <!-- Bottom CTA -->
-    <div class="text-center mt-5">
-      <div style="background:linear-gradient(135deg,#eef2ff,#f3e8ff); border-radius:16px; padding:28px 20px; display:inline-block; max-width:500px;">
-        <div style="font-size:28px; margin-bottom:8px;">🚀</div>
-        <h5 class="fw-bold mb-2">Get certified — Get hired</h5>
-        <p class="text-muted mb-3" style="font-size:14px;">
-          Complete a course, pass the exam with 50%+, and apply directly to these companies.
-        </p>
-        <a href="{% url 'index' %}#courses"
-           style="background:linear-gradient(135deg,#5a67d8,#7b4bb7); color:white; border-radius:25px; padding:11px 28px; text-decoration:none; font-weight:700; font-size:14px;">
-          Browse Courses
-        </a>
-        <a href="{% url 'job_board' %}"
-           style="background:white; border:2px solid #5a67d8; color:#5a67d8; border-radius:25px; padding:9px 24px; text-decoration:none; font-weight:700; font-size:14px; margin-left:10px;">
-          All Jobs
-        </a>
-      </div>
-    </div>
+   
  
   </div>
 </section>
 {% endif %}
 
 <!-- ══════════ TESTIMONIALS ══════════ -->
-<section class="testi-section">
+<section class="testi-section" id="testinomial">
   <div class="container">
     <div class="text-center mb-5">
       <h2 class="fw-bold" style="font-size:32px;">
@@ -466,34 +449,45 @@
 </section>
 
 <!-- ══════════ NEWSLETTER + CONTACT ══════════ -->
-<section class="nl-section" id="contact">
+<section class="nl-section py-5" id="contact">
   <div class="container">
-    <div class="row g-4">
+    <div class="row g-4 align-items-stretch">
+      
       <div class="col-md-6">
-        <div class="nl-card">
-          <h4 class="fw-bold mb-1">Stay Updated 📢</h4>
-          <p class="text-muted" style="font-size:14px;">
-            Subscribe to get notified about new courses and special offers.
+        <div class="h-100 text-center d-flex flex-column justify-content-center align-items-center" 
+             style="background: linear-gradient(135deg, #eef2ff, #f3e8ff); border-radius: 16px; padding: 35px 24px; border: 1px solid #e2e8f0;">
+          <div style="font-size: 32px; margin-bottom: 12px;">🚀</div>
+          <h4 class="fw-bold mb-2 text-dark">Get certified — Get hired</h4>
+          <p class="text-muted mb-4" style="font-size: 14px; max-width: 380px;">
+            Complete a course, pass the exam with 50%+, and apply directly to these companies.
           </p>
-          <div class="nl-input">
-            <input type="email" placeholder="Enter your email address">
-            <button>Subscribe</button>
+          <div class="d-flex flex-wrap gap-2 justify-content-center">
+            <a href="{% url 'index' %}#courses"
+               style="background: linear-gradient(135deg, #5a67d8, #7b4bb7); color: white; border-radius: 25px; padding: 11px 28px; text-decoration: none; font-weight: 700; font-size: 14px; display: inline-block;">
+              Browse Courses
+            </a>
+            <a href="{% url 'job_board' %}"
+               style="background: white; border: 2px solid #5a67d8; color: #5a67d8; border-radius: 25px; padding: 9px 24px; text-decoration: none; font-weight: 700; font-size: 14px; display: inline-block;">
+              All Jobs
+            </a>
           </div>
-          <p style="font-size:11px; color:#aaa; margin-top:8px;">No spam. Unsubscribe anytime.</p>
         </div>
       </div>
+
       <div class="col-md-6">
-        <div class="ct-card">
-          <h4 class="fw-bold mb-1">Contact Us 📬</h4>
-          <p class="text-muted mb-3" style="font-size:14px;">Have questions? We're here to help.</p>
-          <ul>
-            <li><i class="fas fa-envelope me-2 text-primary"></i><strong>Email:</strong> support@teachvion.com</li>
-            <li><i class="fas fa-phone me-2 text-success"></i><strong>Phone:</strong> +91 1234567890</li>
-            <li><i class="fas fa-map-marker-alt me-2 text-danger"></i><strong>Location:</strong> Hyderabad, Telangana</li>
-            <li><i class="fas fa-clock me-2 text-warning"></i><strong>Support:</strong> Mon–Sat, 9 AM – 6 PM</li>
+        <div class="ct-card h-100 p-4" style="background: white; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+          <h4 class="fw-bold mb-1 text-dark">Contact Us 📬</h4>
+          <p class="text-muted mb-4" style="font-size: 14px;">Have questions? We're here to help.</p>
+          
+          <ul class="list-unstyled d-flex flex-column gap-3" style="font-size: 15px; color: #334155;">
+            <li class="d-flex align-items-center"><i class="fas fa-envelope me-3 text-primary" style="width: 20px;"></i><span><strong>Email:</strong> support@teachvion.com</span></li>
+            <li class="d-flex align-items-center"><i class="fas fa-phone me-3 text-success" style="width: 20px;"></i><span><strong>Phone:</strong> +91 1234567890</span></li>
+            <li class="d-flex align-items-center"><i class="fas fa-map-marker-alt me-3 text-danger" style="width: 20px;"></i><span><strong>Location:</strong> Hyderabad, Telangana</span></li>
+            <li class="d-flex align-items-center"><i class="fas fa-clock me-3 text-warning" style="width: 20px;"></i><span><strong>Support:</strong> Mon–Sat, 9 AM – 6 PM</span></li>
           </ul>
         </div>
       </div>
+
     </div>
   </div>
 </section>
@@ -531,6 +525,7 @@ document.querySelectorAll('.category-chip').forEach(function(chip) {
   });
 });
 
+
 /* ═══════════════════════════════════════
    SEARCH
 ═══════════════════════════════════════ */
@@ -553,6 +548,15 @@ function doSearch() {
 
   var noResults = document.getElementById('no-results');
   if (noResults) noResults.style.display = visible === 0 ? 'block' : 'none';
+
+
+  // NEW
+  document.getElementById('courses').scrollIntoView({
+    behavior: 'smooth',
+    block: 'start'
+  });
+
+
 }
 
 function resetFilter() {
@@ -594,9 +598,13 @@ document.querySelectorAll('.btn-enroll[data-id]').forEach(function(btn) {
     })
     .then(function(data) {
       if (data.status === 'login_required') {
+        self.innerHTML = origHTML;
+        self.disabled = false;
         window.location.href = data.login_url || ('/login/?next=/enroll/' + courseId + '/');
 
       } else if (data.status === 'payment_required') {
+        self.innerHTML = origHTML;
+        self.disabled = false;
         window.location.href = data.payment_url || ('/payment/' + data.enrollment_id + '/');
 
       } else if (data.status === 'already_enrolled') {

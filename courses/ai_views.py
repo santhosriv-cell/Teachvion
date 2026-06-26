@@ -3,6 +3,7 @@ import requests
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 from django.shortcuts import get_object_or_404
 from .models import Lesson, Enrollment
@@ -14,53 +15,52 @@ logger = logging.getLogger(__name__)
 def _get_api_key():
     import os
     return (
-        os.environ.get('GEMINI_API_KEY', '')
-        or getattr(settings, 'GEMINI_API_KEY', None)
+        os.environ.get('GROQ_API_KEY', '')
+        or getattr(settings, 'GROQ_API_KEY', None)
         or ''
     )
 
 
 def _build_system_prompt(lesson, course):
     lines = [
-        "You are a helpful AI tutor on Teachvion e-learning platform.",
-        f"The student is watching lesson: '{lesson.title or 'this lesson'}' "
-        f"from course: '{course.title or 'this course'}'.",
+       
+        "You are Teachvion AI Tutor.",
+        "You teach students in an e-learning platform.",
         "Rules:",
-        "- Answer questions about this lesson and course.",
-        "- Be concise. Use beginner-friendly language.",
-        "- Give short code examples when useful.",
-        "- Reply in the same language the student uses.",
+        "- Explain step by step",
+        "- Use beginner-friendly language",
+        "- Keep answers concise but helpful",
+        "- Give examples",
+        "- For coding questions provide code",
+        "- If student asks unrelated questions, politely redirect to learning",
+        f"Current lesson: {lesson.title}",
+        f"Current course: {course.title}",
     ]
     if lesson.notes and lesson.notes.strip():
         lines += ["", "Lesson notes:", "---", lesson.notes.strip()[:1500], "---"]
     return "\n".join(lines)
 
-
-def _build_contents(system_prompt, history, user_message):
-    """Build Gemini contents array with proper alternating roles."""
-    contents = [
-        # System instruction as first user turn
-        {"role": "user",  "parts": [{"text": system_prompt}]},
-        {"role": "model", "parts": [{"text": "Understood! I am ready to help."}]},
+def _build_messages(system_prompt, history, user_message):
+    messages = [
+        {"role": "system", "content": system_prompt}
     ]
 
     for msg in (history or [])[-8:]:
-        role    = str(msg.get('role', '')).strip().lower()
+        role = str(msg.get('role', '')).strip().lower()
         content = str(msg.get('content', '')).strip()
-        if role not in ('user', 'assistant') or not content:
-            continue
-        gemini_role = 'model' if role == 'assistant' else 'user'
-        if contents and contents[-1]['role'] == gemini_role:
-            continue
-        contents.append({"role": gemini_role, "parts": [{"text": content}]})
 
-    # Remove trailing user before adding current message
-    while contents and contents[-1]['role'] == 'user':
-        contents.pop()
+        if role in ('user', 'assistant') and content:
+            messages.append({
+                "role": role,
+                "content": content
+            })
 
-    contents.append({"role": "user", "parts": [{"text": user_message.strip()}]})
-    return contents
+    messages.append({
+        "role": "user",
+        "content": user_message
+    })
 
+    return messages
 
 @login_required
 @require_POST
@@ -70,10 +70,15 @@ def ai_chat_view(request, lesson_id):
     api_key = _get_api_key()
     if not api_key:
         return JsonResponse(
-            {'error': 'AI not configured. Add GEMINI_API_KEY to settings.py. '
-                      'Free key: https://aistudio.google.com/apikey'},
+            {'error': 'AI not configured. Add GROQ_API_KEY to settings.py. '
+                        'Free key: https://console.groq.com/keys'
+                    #   'Free key: https://aistudio.google.com/apikey'
+                      
+                      },
             status=503
         )
+
+
 
     # 2. Enrollment check
     lesson = get_object_or_404(Lesson, id=lesson_id)
@@ -101,23 +106,20 @@ def ai_chat_view(request, lesson_id):
 
     # 4. Build payload
     system_prompt = _build_system_prompt(lesson, lesson.course)
-    contents      = _build_contents(system_prompt, raw_history, user_message)
+    messages = _build_messages(system_prompt, raw_history, user_message)
+    
 
-    url = (
-        "https://generativelanguage.googleapis.com/v1beta/models/"
-        f"gemini-1.5-flash:generateContent?key={api_key}"
-    )
+    url = "https://api.groq.com/openai/v1/chat/completions"
+
 
     payload = {
-        "contents": contents,
-        "generationConfig": {
-            "maxOutputTokens": 1024,
-            "temperature":     0.7,
-        }
+        "model": "llama-3.3-70b-versatile",
+        "messages": messages,
+        "temperature": 0.7,
+        "max_tokens": 1024
     }
 
-    # 5. Call Gemini API
-    # KEY FIX: Use minimal headers — no Origin/Referer which trigger host restrictions
+    
     try:
         resp = requests.post(
             url,
@@ -125,6 +127,8 @@ def ai_chat_view(request, lesson_id):
             timeout=30,
             headers={
                 "Content-Type": "application/json",
+                "Authorization": f"Bearer {api_key}",
+
                 # Do NOT send Origin or Referer headers
                 # They trigger "Host not in allowlist" if key has restrictions
             }
@@ -142,37 +146,23 @@ def ai_chat_view(request, lesson_id):
             logger.error(f"Gemini {resp.status_code} [{status}]: {err_msg}")
 
             # "Host not in allowlist" — API key has domain restrictions
-            if 'allowlist' in err_msg.lower() or 'not in allowlist' in err_msg.lower():
-                return JsonResponse({
-                    'error': (
-                        'API key has domain restrictions. '
-                        'Go to console.cloud.google.com → Credentials → '
-                        'click your key → remove "Website restrictions" → Save.'
-                    )
-                }, status=503)
-
-            if resp.status_code == 400:
-                return JsonResponse({'error': f'Request error: {err_msg}'}, status=400)
-            if resp.status_code in (401, 403):
+            if resp.status_code == 401:
                 return JsonResponse(
-                    {'error': 'Invalid or restricted API key. Check GEMINI_API_KEY.'},
+                    {'error': 'Invalid GROQ API key.'},
                     status=503
                 )
             if resp.status_code == 429:
                 return JsonResponse(
-                    {'error': 'Too many requests. Please wait a moment.'},
+                    {'error': 'Groq rate limit exceeded. Try again later.'},
                     status=429
                 )
-            return JsonResponse(
-                {'error': f'AI error ({resp.status_code}). Please try again.'},
-                status=503
-            )
 
         data = resp.json()
         try:
-            reply = data['candidates'][0]['content']['parts'][0]['text']
+            # reply = data['candidates'][0]['content']['parts'][0]['text']
+            reply = data["choices"][0]["message"]["content"]
         except (KeyError, IndexError):
-            logger.error(f"Unexpected Gemini response: {data}")
+            logger.error(f"Unexpected Groq response: {data}")
             return JsonResponse({'error': 'Unexpected AI response. Try again.'}, status=500)
 
         return JsonResponse({'reply': reply})
