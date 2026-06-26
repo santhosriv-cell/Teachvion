@@ -148,4 +148,4 @@ USE_I18N = True
 USE_TZ = True
 
 # AI Tutor
-GROQ_API_KEY=os.getenv("GROQ_API_KEY")
+GROQ_API_KEY=os.environ.get("GROQ_API_KEY")

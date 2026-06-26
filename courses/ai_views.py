@@ -72,7 +72,6 @@ def ai_chat_view(request, lesson_id):
         return JsonResponse(
             {'error': 'AI not configured. Add GROQ_API_KEY to settings.py. '
                         'Free key: https://console.groq.com/keys'
-                    #   'Free key: https://aistudio.google.com/apikey'
                       
                       },
             status=503
