@@ -14,12 +14,14 @@ logger = logging.getLogger(__name__)
 
 def _get_api_key():
     import os
-    return (
-        os.environ.get('GROQ_API_KEY', '')
-        or getattr(settings, 'GROQ_API_KEY', None)
-        or ''
-    )
 
+    env_key = os.environ.get("GROQ_API_KEY", "")
+    settings_key = getattr(settings, "GROQ_API_KEY", "")
+
+    logger.error(f"ENV KEY EXISTS: {bool(env_key)}")
+    logger.error(f"SETTINGS KEY EXISTS: {bool(settings_key)}")
+
+    return env_key or settings_key or ""
 
 def _build_system_prompt(lesson, course):
     lines = [
