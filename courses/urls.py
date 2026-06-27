@@ -20,4 +20,5 @@ urlpatterns = [
     path('courses/diet/',       views.category_view, {'category': 'diet'},       name='diet'),
     path('courses/computer-science/', views.category_view, {'category': 'computer_science'}, name='computer_science'),
     path('lesson/<int:lesson_id>/ai-chat/', ai_views.ai_chat_view, name='ai_chat'),
+    path('course/<int:course_id>/attendance/<int:timing_id>/', views.class_attendance_view, name='class_attendance'),
 ]
